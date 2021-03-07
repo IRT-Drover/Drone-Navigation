@@ -625,7 +625,7 @@ int main(int argc, const char** argv)
 
     //The filename of the location of the picture is opened
    
-    const char* filename1 = "C:\\Users\\diego\\source\\repos\\Maze_1.png";
+    const char* filename1 = "/home/pi/Drone-Navigation/Maze_1.png";
     
     //The image is read by openCV in its RGB format
     image = imread((filename1), IMREAD_COLOR);
@@ -647,7 +647,7 @@ int main(int argc, const char** argv)
     // variables declaration for resizing
     bool resizing = true;
 
-    float scaleFactor = .65;
+    float scaleFactor = .5;
     int scaleFactorBack = int(1 /scaleFactor);
 
     // The number of columns and rows for the image(black and white) is calculated
@@ -655,9 +655,10 @@ int main(int argc, const char** argv)
     int gray_rows_number = gray.rows;
 
     //The start and end pixel's coordinates are intialized 
-    int start[2] = { 10,10 };
-    int end[2] = { 258, 258 };
-
+   int start[2] = { 10,10 };
+    int end[2] = { 280, 280 };
+    
+    
     bool validated_start_end = false;
 
     // These if statement check to see if the start and end coordinates given are within the image's range (basically: are they valid)

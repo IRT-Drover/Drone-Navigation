@@ -1,0 +1,3 @@
+/home/pi/Drone-Navigation/Build/CMakeFiles/rebuild_cache.dir
+/home/pi/Drone-Navigation/Build/CMakeFiles/droverCode.dir
+/home/pi/Drone-Navigation/Build/CMakeFiles/edit_cache.dir
