@@ -275,9 +275,10 @@ void bitmap_to_adjacency(Mat gray, vector<vector<float>>& adjacencyImageArray)
                     //All of the values of the matrix are at default, infinity. 
                     //This is so that the dijstra algorithm will see the large cost and avoid taking those paths.
                     //If the cost calculated is less than 20, then the adjacency matrix is updated at the position of the elements being compared.
-                    
-                    adjacencyImageArray[adj_p0][adj_p1] = cost;
-                     // this is needed to highlight that if there is no cost, there is no change. 
+                    if (cost <= 20) 
+                    {
+                        adjacencyImageArray[adj_p0][adj_p1] = cost;
+                    } // this is needed to highlight that if there is no cost, there is no change. 
                     //printf("AFTER --- (%i,%i) Cost calculation inside  =  %f5  ,  %i , %i \n", i,j, adjacencyImageArray[adj_p0][adj_p1], adj_p0, adj_p1);
                 }
 
@@ -320,7 +321,7 @@ void dijkstra(vector<vector<float>>& adjacencyImageArray, int startnode, int end
     int node_of_interest = endnode;  // identify the node that we are interested to determine the destination for the shortest path. 
     bool found_node_of_interest = false;
     int n = adjacencyImageArray.size();
-    printf("\n n: %f2= ", n);
+
     // n = iterations, so it can be set to total_adj_matrix_cells in order to search all the combinations of path across the full matrix
     // or it can be set to "endnode" to perform calculations until endnode
 
@@ -373,7 +374,6 @@ void dijkstra(vector<vector<float>>& adjacencyImageArray, int startnode, int end
                     //If that's true then minDistance is the new distance to that node and the node is set to i
                     mindistance = distance[i];
                     nextnode = i;
-                    printf("Done");
                 }
             }
 
@@ -389,7 +389,6 @@ void dijkstra(vector<vector<float>>& adjacencyImageArray, int startnode, int end
                         distance[i] = mindistance + adjacencyImageArray[nextnode][i];
                         //The node is the path/pred vector is updated
                         pred[i] = nextnode;
-                        printf("Done");
                     }
 
             //If the node is equal to the end node
@@ -438,7 +437,7 @@ void dijkstra(vector<vector<float>>& adjacencyImageArray, int startnode, int end
     reverse(short_path_startnode_endnode.begin(), short_path_startnode_endnode.end());
 
     // Printing path to make sure it is accurate
-    printf("\nPath from startnode to endnode  with a final distance of: %i= ", final_distance);
+    printf("\nPath from startnode to endnode  with a final distance of: %f2= ", final_distance);
     //Prints the nodes
     for (i = 0; i < short_path_startnode_endnode.size(); i++)
     {
@@ -454,14 +453,14 @@ void dijkstra(vector<vector<float>>& adjacencyImageArray, int startnode, int end
 
 //Run Through Graph Takes the gray and cannied image made in processImageCanny function and runs the dijstra algorithmn to take the 
 // shortest path between a start and end point defined in main. It then shows the windows of the updated pictures.
-static void runThroughGraph(int source[], int target[], Mat gray, Mat cedge, Mat &ImagePath, Mat &ImagePathEdge, Mat &originalImage)
+static void runThroughGraph(int source[], int target[], Mat gray, Mat cedge, Mat &ImagePath, Mat &ImagePathEdge)
 {
     printf("**************Starting to run:  runThroughGraph *************   \n");
     // START OF SECTION to declare variables, arrays, etc.
     
     //Image initialization area
     //tmp will show the image with the shortest path once found
-    Mat tmp, tmp_cedge, image_to_process, tmp_Color;
+    Mat tmp, tmp_cedge, image_to_process;
         
     gray.copyTo(image_to_process);
     gray.copyTo(tmp);
@@ -469,8 +468,6 @@ static void runThroughGraph(int source[], int target[], Mat gray, Mat cedge, Mat
     int channels = tmp.channels();
     // tmp_cedge: Canny image to show the shortest path once found
     cedge.copyTo(tmp_cedge);
-
-    originalImage.copyTo(tmp_Color);
     // channels of colors for the picture. 
     int channels_tmp_cedge = tmp_cedge.channels();
 
@@ -518,17 +515,7 @@ static void runThroughGraph(int source[], int target[], Mat gray, Mat cedge, Mat
     //This is the vector of the adj array.
     //All values are set to infinity by default
     //Values in the adj vector (I call it a matrix in other comments, but technically, its a vector) represent the cost of moving from the x node to the y node
-    //20210118
-    time(&t1);
-    //printf("Total Image cells = %.f \n", total_image_cells);
-    
-
     vector<vector<float>> adjacencyImageArray(total_image_cells, vector<float>(total_image_cells, INFINITE));
-    //printf("Image's total rows*columns number is: %i\n", total_image_cells);
-    time(&t2);
-    seconds = difftime(t2,t1);
-    printf("Completed creation of adjecency matrix, total time in seconds = %.f \n",seconds);
-    //20210118
 
     //This vector will be used in the dijkstra function to list the nodes that must be taken to reach the end node from the start node
     vector<int> short_path_startnode_endnode;
@@ -575,31 +562,19 @@ static void runThroughGraph(int source[], int target[], Mat gray, Mat cedge, Mat
             //printf("Iteration: %i out of %i. Coordinate %i was converted to coordinates (%i,%i)\n", i, total_path_steps, short_path_startnode_endnode[i], coordinate[0], coordinate[1]);
             tmp.at<uchar>(coordinate[0], coordinate[1]) = 145;  // set the pixel
 
-            
-
             //Does the same thign as above, but with the tmp_cedge Matri
             to_coordinates(short_path_startnode_endnode[i], coordinate, tmp_cedge);
             tmp_cedge.at<uchar>(coordinate[0], coordinate[1]) = 145;  // set the pixel
 
-            to_coordinates(short_path_startnode_endnode[i], coordinate, tmp_Color);
-            Vec3b color = tmp_Color.at<Vec3b>(Point(coordinate[1], coordinate[0]));
-            color[0] = 0;
-            color[1] = 0;
-            color[2] = 255;
-            tmp_Color.at<Vec3b>(Point(coordinate[1], coordinate[0])) = color;
         }
     else
     {
         //If the image has more than one channel, a error message is printed
         printf("the image has 3 channels... this above drawing is only supporting 1 channel for image_to_process images \n");
     }
- 
-       
-  
 
     tmp.copyTo(ImagePath);
     tmp_cedge.copyTo(ImagePathEdge);
-    tmp_Color.copyTo(originalImage);
 
     printf("**************End of run:  runThroughGraph *************   \n");
 }
@@ -650,7 +625,7 @@ int main(int argc, const char** argv)
 
     //The filename of the location of the picture is opened
    
-    const char* filename1 = "C:\\Users\\diego\\source\\repos\\road.png";
+    const char* filename1 = "C:\\Users\\diego\\source\\repos\\Maze_1.png";
     
     //The image is read by openCV in its RGB format
     image = imread((filename1), IMREAD_COLOR);
@@ -670,9 +645,9 @@ int main(int argc, const char** argv)
     cvtColor(image, gray, COLOR_BGR2GRAY);
 
     // variables declaration for resizing
-    bool resizing = false;
+    bool resizing = true;
 
-    float scaleFactor = 1;
+    float scaleFactor = .65;
     int scaleFactorBack = int(1 /scaleFactor);
 
     // The number of columns and rows for the image(black and white) is calculated
@@ -680,20 +655,11 @@ int main(int argc, const char** argv)
     int gray_rows_number = gray.rows;
 
     //The start and end pixel's coordinates are intialized 
-    int start[2] = { 185, 0 };
-    int end[2] = { 53, 290};
+    int start[2] = { 10,10 };
+    int end[2] = { 258, 258 };
 
     bool validated_start_end = false;
 
-    /*Vec3b color = image.at<Vec3b>(Point(end[1], end[0]));
-    color[0] = 0;
-    color[1] = 0;
-    color[2] = 255;
-    image.at<Vec3b>(Point(end[1], end[0])) = color;
-    print_images("original", image);
-    waitKey(0);
-    destroyAllWindows();
-    */
     // These if statement check to see if the start and end coordinates given are within the image's range (basically: are they valid)
     if (start[1] >= 0 && start[1] <= gray.rows)
         if (start[2] >= 0 && start[2] <= gray.cols)
@@ -716,7 +682,6 @@ int main(int argc, const char** argv)
             
             resize(image, image_scaled, cv::Size(image.cols * scaleFactor, image.rows * scaleFactor));
             resize(gray, grayed_scaled, cv::Size(gray.cols * scaleFactor, gray.rows * scaleFactor));
- 
                         
             start[0] = start[0] * scaleFactor;
             start[1] = start[1] * scaleFactor;
@@ -726,20 +691,17 @@ int main(int argc, const char** argv)
             
             //Canny returns the c_edge therefore it needs to be scaled as well:
             resize(cedge, cedge_scaled, cv::Size(gray.cols * scaleFactor, gray.rows * scaleFactor));
-
             
-
-            runThroughGraph(start, end, grayed_scaled, cedge_scaled, ImagePath_scaled, ImagePathEdge_scaled, image_scaled);
+            runThroughGraph(start, end, grayed_scaled, cedge_scaled, ImagePath_scaled, ImagePathEdge_scaled);
             // reconstructing the image to the original size for printing
             
             resize(ImagePath_scaled, ImagePath, Size(ImagePath_scaled.cols*scaleFactorBack, ImagePath_scaled.rows*scaleFactorBack));
             resize(ImagePathEdge_scaled, ImagePathEdge, Size(ImagePath_scaled.cols * scaleFactorBack, ImagePath_scaled.rows * scaleFactorBack));
-
         }
         else
         {
             processImageIntoCannyEdges(showing, image, start, end, gray, cedge);
-            runThroughGraph(start, end, gray, cedge, ImagePath, ImagePathEdge, image);
+            runThroughGraph(start, end, gray, cedge, ImagePath, ImagePathEdge);
         }
 
         //If the show boolean is true, then the function will show the images in new windows.
@@ -755,7 +717,6 @@ int main(int argc, const char** argv)
                 print_images("Canny scaled", cedge_scaled);
                 print_images("Image with Path: ", ImagePath_scaled);
                 print_images("Image with Path edge: ", ImagePathEdge_scaled);
-                print_images("Image with path Color: ", image_scaled);
             }
 
             print_images("Image with Path: ", ImagePath);
@@ -772,6 +733,7 @@ int main(int argc, const char** argv)
     {
         printf("Incorrect inputs.... start and end points are inconsistent   \n");
     }
+
 
     return 0;
 }
