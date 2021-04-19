@@ -48,20 +48,40 @@ def arm_and_takeoff(aTargetAltitude):
   while True:
     print(" Altitude: ", vehicle.location.global_relative_frame.alt)
     #Break and return from function just below target altitude.
-    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95:
+    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.90:
       print("Reached target altitude")
       break
     time.sleep(1)
 
 # Initialize the takeoff sequence to 2m
-arm_and_takeoff(1)
+arm_and_takeoff(2)
 print("Take off complete")
 
-# Hover for 10 seconds
-time.sleep(10)
+vehicle.airspeed = 0.3
+
+# Hover for 3 seconds
+time.sleep(2)
 
 print("Now let's land")
+
 vehicle.mode = VehicleMode("LAND")
+
+print("Landing. 1...")
+
+print("Vehicle is in", vehicle.mode)
+
+time.sleep(2)
+
+#print("Let's send the command again......")
+
+#vehicle.mode = VehicleMode("LAND")
+
+#time.sleep(2)
+
+#print("Landing. 2...")
+
+#print("Vehicle is in", vehicle.mode)
 
 # Close vehicle object
 vehicle.close()
+ 

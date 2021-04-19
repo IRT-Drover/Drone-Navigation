@@ -1,5 +1,6 @@
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
+from OpenCV import OpenCV
 import time
 
 import argparse
@@ -10,6 +11,8 @@ args = parser.parse_args()
 
 connection_string = args.connect
 sitl = None
+
+newCamera = OpenCV()
 
 # Start SITL if no connection string specified
 if not connection_string:
@@ -53,14 +56,22 @@ def arm_and_takeoff(aTargetAltitude):
     time.sleep(1)
 
 # Initialize the takeoff sequence to 2m
-arm_and_takeoff(1)
+arm_and_takeoff(2)
 print("Take off complete")
 
+vehicle.airspeed = 0.3
+
 # Hover for 10 seconds
-time.sleep(10)
+time.sleep(3)
+print("Take Picture")
+newCamera.takePicture(vehicle.location.global_relative_frame, vehicle.location.global_relative_frame.alt)
+time.sleep(3)
+
 
 print("Now let's land")
 vehicle.mode = VehicleMode("LAND")
+
+time.sleep(2)
 
 # Close vehicle object
 vehicle.close()

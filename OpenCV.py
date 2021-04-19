@@ -17,13 +17,11 @@ class OpenCV:
     counter = 0
     repository = open(newPath + "/pictureData.txt", "a")
     
-    def takePicture(self, lon, lat, alt):
+    def takePicture(self, location, alt):
         ret, img = cam.read()
         self.counter += 1
         cv2.imwrite(self.newPath + "/Drone Picture: " + self.day + " " + self.time + ".png", img)
-        self.repository.write("Picture " + str(self.counter) + "\n" + "Longitude " + str(lon) + "\n" + "Latitude " + str(lat) + "\n" + "Altitude" + str(alt))
+        self.repository.write("Picture " + str(self.counter) + "\n" + "Location " + str(location) + "\n" + "Altitude" + str(alt))
 
-newCamera = OpenCV()
-newCamera.takePicture(1, 1 , 1)
         
     

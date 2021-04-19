@@ -1,0 +1,3 @@
+Picture 1
+Location LocationGlobalRelative:lat=40.6186294,lon=-74.5688477,alt=4.858
+Altitude4.858
