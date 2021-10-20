@@ -114,7 +114,3 @@ def main():
 
     path = astar(maze, start, end)
     print(path)
-
-
-if __name__ == '__main__':
-    main()
