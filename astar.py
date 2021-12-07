@@ -51,10 +51,6 @@ def calculateH(node, endNode):
     '''calculates the distance from the current node to the final node'''
     node.h = (((node.x - endNode.x) ** 2) + ((node.y - endNode.y) ** 2)) ** 0.5
 
-def isDestination(node, endNode):
-    '''determines whether the current node is the destination'''
-    return node.x == endNode.x and node.y == endNode.y
-
 def reconstructPath(node):
     '''returns list of all parent nodes of specified node'''
     path = []
@@ -78,8 +74,27 @@ def aStar(startNode, endNode, image):
 
         if currentNode == endNode: # reached the end
             return reconstructPath(current)
-
         
+        children = []
+        for newPosition in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # adjacent nodes
+            nodeX = current.x + newPosition[0]
+            nodeY = current.y + newPosition[1]
+            child = new Node()
+            child.x = nodeX
+            child.y = nodeY
+            
+            if not isValid(child, image):
+                continue
+            
+            child.g = current.g + calculateG(current, child, image)
+            child.h = calculateH(child, endNode)
+            child.f = child.g + child.h
+            
+            if child not in openQueue:
+                
+            
+            
+   
         
 
         
