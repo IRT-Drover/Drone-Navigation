@@ -91,6 +91,10 @@ def aStar(startNode, endNode, image):
             child.f = child.g + child.h
             
             if child not in openQueue:
+                heapq.heappush(openQueue, child)
+                
+    return "failure"
+                    
                 
             
             
