@@ -37,27 +37,31 @@ class Node():
 
 def isValid(node, image):
     '''checks if a node's coordinates exist on an image ndarray'''
-    if((node.x >= 0) and (node.x < image.shape[0]) and (node.y >= 0) and (node.y >= image.shape[1])):
-        return False 
-    return True 
+    if node.x < 0 or node.y < 0:
+        return False
+    if node.x >= image.shape[0] or node.y >= image.shape[1]:
+        return False
+    return True
     
 
 def calculateG(parentNode, childNode, image):
-    '''set the cost of the current node as the color difference of its parent using the image ndarray'''
-    parentBGR = image[parent.x][parent.y]
-    childBGR = image[child.x][child.y]
-    childNode.g = parentNode.g + math.sqrt((parentBGR[0]-childBGR[0])**2 + (parentBGR[1]-childBGR[1])**2 + (parentBGR[2]-childBGR[2])**2) # difference between color values as 3d points
+    '''return the cost of the child node as the color difference of its parent using the image ndarray'''
+    parentBGR = image[parentNode.x][parentNode.y]
+    childBGR = image[childNode.x][childNode.y]
+    g = parentNode.g + math.sqrt((parentBGR[0]-childBGR[0])**2 + (parentBGR[1]-childBGR[1])**2 + (parentBGR[2]-childBGR[2])**2) # difference between color values as 3d points
+    return g
 
 def calculateH(node, endNode):
     '''calculates the distance from the current node to the final node'''
-    node.h = (((node.x - endNode.x) ** 2) + ((node.y - endNode.y) ** 2)) ** 0.5
+    h = (((node.x - endNode.x) ** 2) + ((node.y - endNode.y) ** 2)) ** 0.5
+    return h
 
 def reconstructPath(node):
-    '''returns list of all parent nodes of specified node'''
+    '''returns list of subsequent parent nodes of specified node'''
     path = []
     while node is not None:
-        path.append(current)
-        current = current.parent
+        path.append(node)
+        node = node.parent
     return path[::-1] # Return reversed path
 
 def aStar(startNode, endNode, image):
@@ -69,28 +73,29 @@ def aStar(startNode, endNode, image):
     startNode.g = 0
     startNode.h = calculateH(startNode, endNode)
     startNode.f = startNode.h
-    openQueue = heapq()
-    openQueue.append(startNode)
+    heapq.heappush(openQueue, startNode)
 
     while (len(openQueue) != 0):
-        currentNode = openQueue.heappop() # node with the smallest f value
+        currentNode = heapq.heappop(openQueue) # node with the smallest f value
+        print(currentNode)
 
         if currentNode == endNode: # reached the end
-            return reconstructPath(current)
+            return reconstructPath(currentNode)
         
-        children = []
         for newPosition in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # adjacent nodes
-            nodeX = current.x + newPosition[0]
-            nodeY = current.y + newPosition[1]
+
+            nodeX = currentNode.x + newPosition[0]
+            nodeY = currentNode.y + newPosition[1]
             child = Node()
             child.x = nodeX
             child.y = nodeY
-            print("Child: ", child);
+            # print("Child: ", child)
             
             if not isValid(child, image):
-                continue    
+                continue
 
-            child.g = current.g + calculateG(current, child, image)
+            child.parent = currentNode
+            child.g = calculateG(currentNode, child, image)
             child.h = calculateH(child, endNode)
             child.f = child.g + child.h
             
@@ -99,19 +104,9 @@ def aStar(startNode, endNode, image):
                 
     return "failure"
                     
-                
-            
-            
-
-   
-        
-
-        
-
 def main():
     img = cv.imread(cv.samples.findFile("SimpleObstacle.png")) # img is a numpy ndarray
     img2 = cv.imread(cv.samples.findFile("SimpleObstacle.png")) # img is a numpy ndarray
-
     
     if img is None:
         sys.exit("Could not read the image.")
@@ -127,11 +122,10 @@ def main():
     end.x = len(img)-1
     end.y = len(img[len(img)-1])-1
 
-    print("Start: ", start)
-    print("End: ", end)
+    # print("Start: ", start)
+    # print("End: ", end)
 
     path = aStar(start, end, img)
-    print(path)
     # print(path)
     for coords in path:
         img2[coords.y, coords.x] = [0,0,255]
