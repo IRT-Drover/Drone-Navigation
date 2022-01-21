@@ -42,7 +42,7 @@ def isValid(node, image):
     if node.x >= image.shape[0] or node.y >= image.shape[1]:
         return False
     return True
-    
+
 
 def calculateG(parentNode, childNode, image):
     '''return the cost of the child node as the color difference of its parent using the image ndarray'''
@@ -81,7 +81,7 @@ def aStar(startNode, endNode, image):
 
         if currentNode == endNode: # reached the end
             return reconstructPath(currentNode)
-        
+
         for newPosition in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # adjacent nodes
 
             nodeX = currentNode.x + newPosition[0]
@@ -90,7 +90,7 @@ def aStar(startNode, endNode, image):
             child.x = nodeX
             child.y = nodeY
             # print("Child: ", child)
-            
+
             if not isValid(child, image):
                 continue
 
@@ -98,19 +98,19 @@ def aStar(startNode, endNode, image):
             child.g = calculateG(currentNode, child, image)
             child.h = calculateH(child, endNode)
             child.f = child.g + child.h
-            
+
             if child not in openQueue:
                 heapq.heappush(openQueue, child)
-                
+
     return "failure"
-                    
+
 def main():
     img = cv.imread(cv.samples.findFile("SimpleObstacle.png")) # img is a numpy ndarray
     img2 = cv.imread(cv.samples.findFile("SimpleObstacle.png")) # img is a numpy ndarray
-    
+
     if img is None:
         sys.exit("Could not read the image.")
-    
+
     #img = img.tolist() # row list of column list of pixel RGB list
     cv.imshow("img.png", img2)
 
@@ -129,10 +129,10 @@ def main():
     # print(path)
     for coords in path:
         img2[coords.y, coords.x] = [0,0,255]
-    
+
     cv.imwrite("test.png", img2)
-    
 
 
 
-main()
+
+#main()
