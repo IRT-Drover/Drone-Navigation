@@ -16,7 +16,7 @@ def main():
     SQUARE_SIZE = 30
 
     # Location of checkerboard images
-    checkerboard_directory = 'CheckerboardPhotos_Multi_2/'
+    checkerboard_directory = 'CheckerboardPhotos_Multi_3/'
 
     # stop the iteration when specified
     # accuracy, epsilon, is reached or
@@ -71,13 +71,13 @@ def main():
     print(t_vecs)
 
     optimalcameramatrix = undistortion(IMAGES, matrix, distortion, checkerboard_directory)
-    reprojectionError(threedpoints, twodpoints, r_vecs, t_vecs, matrix, distortion)
+    reprojectionError(threedpoints, twodpoints, r_vecs, t_vecs, optimalcameramatrix, distortion)
 
 def drawCorners(CHECKERBOARD, images, objectp3d, checkerboard_directory):
     global threedpoints, twodpoints
 
     for filename in images:
-        print(filename)
+        print("Loading..." + filename[-12:-4] + ".JPG")
         image = cv2.imread(filename)
         grayColor = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # cv2.imshow('grayscale', grayColor)
@@ -93,7 +93,6 @@ def drawCorners(CHECKERBOARD, images, objectp3d, checkerboard_directory):
     					+ cv2.CALIB_CB_FAST_CHECK +
     					cv2.CALIB_CB_NORMALIZE_IMAGE)
 
-        print(corners)
     	# If desired number of corners can be detected then,
     	# refine the pixel coordinates and display
     	# them on the images of checker board
@@ -110,9 +109,7 @@ def drawCorners(CHECKERBOARD, images, objectp3d, checkerboard_directory):
     		# Draw and display the corners
             image = cv2.drawChessboardCorners(image, CHECKERBOARD, corners2, ret)
             cv2.imshow('img.png', image)
-            cv2.waitKey(1000)
-        elif ret == False:
-            raise Exception("Failed to find corners")
+            cv2.waitKey(100)
 
     cv2.destroyAllWindows()
     image_size = cv2.imread(images[0]).shape[-2:-4:-1]
@@ -129,10 +126,10 @@ def undistortion(images, matrix, distortion, checkerboard_directory):
     # Also returns region of interest of photo (find out what roi means)
     image = cv2.imread(images[0])
     h, w = image.shape[:2]
-    newcameramatrix, roi = cv2.getOptimalNewCameraMatrix(matrix, distortion, (w,h), 0, (w,h)) # try changing alpha
+    newcameramatrix, roi = cv2.getOptimalNewCameraMatrix(matrix, distortion, (w,h), 1, (w,h)) # try changing alpha
 
-    for filenumber in range(0, len(images)):
-        image = cv2.imread(images[filenumber])
+    for file in images:
+        image = cv2.imread(file)
         # undistort
         image_undistorted = cv2.undistort(image, matrix, distortion, None, newcameramatrix) #1
         # image_undistorted = cv2.undistort(image, matrix, distortion, None, matrix) #2
@@ -141,7 +138,7 @@ def undistortion(images, matrix, distortion, checkerboard_directory):
         print(w)
         print(h)
         image_undistorted = image_undistorted[y:y+h, x:x+w]
-        cv2.imwrite(f'{checkerboard_directory}undistortedresult{filenumber}.png', image_undistorted) #1
+        cv2.imwrite(f'{checkerboard_directory}undistortedresult{file[-12:-4]}.png', image_undistorted) #1
         # cv2.imwrite(f'{checkerboard_directory}/undistortedresult{filenumber+99}.png', image_undistorted) #2
 
     return newcameramatrix
