@@ -61,21 +61,21 @@ vehicle.airspeed = 7
 
 print("go to waypoint:")
 
-wp1 = LocationGlobalRelative(40.6185111, -74.5685917, 5)   # <- the 3rd argument is the altitude in meters.
+wp1 = LocationGlobalRelative(40.6184195, -74.5685863, 5)   # <- the 3rd argument is the altitude in meters.
 vehicle.simple_goto(wp1)
 
 time.sleep(10)
 
 print("go to waypoint:")
 
-wp2 = LocationGlobalRelative(40.6185579,-74.5689163, 5)   # <- the 3rd argument is the altitude in meters.
+wp2 = LocationGlobalRelative(40.6182851,-74.5689458, 5)   # <- the 3rd argument is the altitude in meters.
 vehicle.simple_goto(wp2)
 
 time.sleep(10)
 
 print("go to waypoint:")
 
-wp3 = LocationGlobalRelative(40.6183319,-74.5688814, 5)   # <- the 3rd argument is the altitude in meters.
+wp3 = LocationGlobalRelative(40.6181385,-74.5686990, 5)   # <- the 3rd argument is the altitude in meters.
 vehicle.simple_goto(wp3)
 
 
