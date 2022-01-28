@@ -17,7 +17,6 @@ import glob
 filename = 'CameraCalibrationVideo.mp4'
 #Directory Information
 checkerboard_directory = 'CheckerboardPhotos_ELP-OV2710-2.1mm/'
-#Number of board images in the folder if already collected
 #Define dimensions of board (width and height) - number of corners of internal squares
 board_w = 9
 board_h = 6
@@ -129,7 +128,7 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
     objp[:,:2] = np.mgrid[0:(board_w*square_size):square_size,0:(board_h*square_size):square_size].T.reshape(-1,2)
 
     # EDITED
-    IMAGES = glob.glob(f'{checkerboard_directory}*.png')
+    IMAGES = glob.glob(f'{checkerboard_directory}Calibration*.png')
     print(IMAGES)
     for i in range(1, n_boards+1):
 
@@ -141,18 +140,12 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
         grey_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
         #Find chessboard corners
-        # found, corners = cv2.findChessboardCorners(grey_image, (board_w,board_h),cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv2.cv.CV_CALIB_CB_NORMALIZE_IMAGE)
         found, corners = cv2.findChessboardCorners(grey_image, (board_w,board_h),cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE) # EDITED
         print (found)
 
         if found == True:
-
-            #Add the "true" checkerboard corners
-            opts.append(objp)
-
             #Improve the accuracy of the checkerboard corners found in the image and save them to the ipts variable.
-            cv2.cornerSubPix(grey_image, corners, (20, 20), (-1, -1), criteria)
-            ipts.append(corners)
+            corners = cv2.cornerSubPix(grey_image, corners, (20, 20), (-1, -1), criteria)
 
             #Draw chessboard corners
             cv2.drawChessboardCorners(image, (board_w, board_h), corners, found)
@@ -160,7 +153,12 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
             #Show the image with the chessboard corners overlaid.
             cv2.imshow("Corners", image)
 
-        char = cv2.waitKey(1000)
+        char = cv2.waitKey(10000)
+        if char != 120 and found == True:
+            #Add the "true" checkerboard corners
+            opts.append(objp)
+            
+            ipts.append(corners)
         #char = cv2.waitKey(0)
 
     cv2.destroyWindow("Corners")
@@ -225,15 +223,17 @@ print('Collect as many images as you need. ~20 calibration images are recommende
 print(' ')
 print('Once satisfied, wait for video to end or press ESC')
 
-#number of collected board images (recommended: ~20)
 ImageCollect(filename, checkerboard_directory)
-n_boards = len(glob.glob(f'{checkerboard_directory}*.png'))
+#Number of collected board images in the directory (recommended: ~20)
+n_boards = len(glob.glob(f'{checkerboard_directory}Calibration*.png'))
 print(' ')
 print(f'Total of {n_boards} calibration images found in {checkerboard_directory}')
 print('------------------------------------------------------------------------')
 print('Step 2: Calibration')
-print('We will analyze the images take and calibrate the camera.')
-print('Press the esc button to close the image windows as they appear.')
+print('We will analyze the images taken and calibrate the camera.')
+print(' ')
+print('Press \'x\' to exclude an image with inaccurate corner mapping from')
+print('the calibration calculations as the image windows appear.')
 print(' ')
 
 ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_directory)
