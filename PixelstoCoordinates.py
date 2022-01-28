@@ -13,15 +13,21 @@ from pygeodesy import Datums
 
 def main():
     #Camera Specs
-    focal = 0.002 # focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
-    unitcell = 1.12 # size of single pixel in micrometers
+    # focal = 0.002 # focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
+    # unitcell = 1.12 # size of single pixel in micrometers
+    # resolution = 1/unitcell*1000000 # pixels per meter
+    # sensor_H = 4656 # pixel dimensions of camera sensor/photo
+    # sensor_V = 3496
+    focal = 0.0021 # focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
+    unitcell = 3 # size of single pixel in micrometers
     resolution = 1/unitcell*1000000 # pixels per meter
-    sensor_H = 4656 # pixel dimensions of camera sensor/photo
-    sensor_V = 3496
     
+    img = cv.imread('CameraCalibration/CheckerboardPhotos_ELP-OV2710-2.1mm/undistorted_Image5.png')
+    sensor_H = img.shape[1] # pixel dimensions of camera sensor/photo (should be the same thing)
+    sensor_V = img.shape[0]
     
     PATH = []
-    for i in [[0,0],[4656/2-1,0],[4656-1,0],[4656-1,3496/2-1],[4656-1,3496-1],[4656/2-1,3496-1],[0,3496-1], [0,3496/2-1]]:
+    for i in [[0,0],[sensor_H/2-1,0],[sensor_H-1,0],[sensor_H-1,sensor_V/2-1],[sensor_H-1,sensor_V-1],[sensor_H/2-1,sensor_V-1],[0,sensor_V-1], [0,sensor_V/2-1]]:
         testpixel = Node()
         testpixel.x = i[0]
         testpixel.y = i[1]
@@ -29,7 +35,6 @@ def main():
     
     # newNode = Node()
     # print(newNode)
-    img = cv.imread('Maze_1.png')
     
     
     # height_pix, width_pix = img.shape[:2]
@@ -39,7 +44,7 @@ def main():
     # imageheight = height_pix/resolution
     # imagewidth = width_pix/resolution
     
-    altitude = 10 # in meters
+    altitude = 1.6 # in meters
     image_dist = (altitude * focal) / (altitude + focal) # not sure if physics
     # mapheight = imageheight * altitude / image_dist # not sure if physics is right
     magnification = image_dist/altitude #imageheight / mapheight #not sure if physics right
