@@ -2,6 +2,8 @@
 
 import numpy as np
 import cv2 as cv
+
+# Initiating Camera
 camera = cv.VideoCapture(1)
 
 # Check frame dimensions
