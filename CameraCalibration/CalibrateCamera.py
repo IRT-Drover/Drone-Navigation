@@ -14,9 +14,9 @@ import numpy as np
 import glob
 
 #Import Video Information
-filename = 'CameraCalibrationVideo.mp4'
+filename = 'CameraCalibrationVideo1.mp4'
 #Directory Information
-checkerboard_directory = 'CheckerboardPhotos_ELP-OV2710-2.1mm/'
+checkerboard_directory = '1__CheckerboardPhotos_ELP-OV2710-2.1mm/'
 #Define dimensions of board (width and height) - number of corners of internal squares
 board_w = 9
 board_h = 6
@@ -193,7 +193,7 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
 
     #Save data
     print ('Saving data file...')
-    np.savez('calibration_data', reproj_error=reproj_error, distCoeff=distCoeff, intrinsic_matrix=intrinsic_matrix)
+    np.savez('calibration_data', distCoeff=distCoeff, intrinsic_matrix=intrinsic_matrix)
     print ('Calibration complete')
 
     #Undistort Images
@@ -206,7 +206,7 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
         # undistort
         dst = cv2.undistort(image, intrinsic_matrix, distCoeff, None)
 
-        cv2.imshow('Undisorted Image',dst)
+        cv2.imshow('Undistorted Image',dst)
         cv2.imwrite(f'{checkerboard_directory}undistorted_{IMAGES[i-1][len(checkerboard_directory)+12:-4]}.png', dst)
 
         char = cv2.waitKey(0)

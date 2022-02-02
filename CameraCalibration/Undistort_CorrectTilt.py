@@ -19,32 +19,63 @@ import numpy as np
 import cv2, time, sys
 import glob
 
-# filename = 'GOPR0028.MP4'
-directory = 'pixeltocoordinate_imagetesting/'
+class CameraParameters:
+    npz_calib_file = np.load('calibration_data.npz')
+    distCoeff = npz_calib_file['distCoeff']
+    intrinsic_matrix = npz_calib_file['intrinsic_matrix']
+    npz_calib_file.close()
+    
+    # undistort an image that has already been read
+    def undistortPicture(self, img):
+        img = cv2.undistort(img, self.intrinsic_matrix, self.distCoeff, None)
+        return img
 
-print('Loading data files')
+    # read images from a folder and undistort each of them and write them as a new photo
+    def undistortFolder(self, directory):
+        print('Starting to undistort the photos....')
 
-npz_calib_file = np.load('calibration_data.npz')
+        #Loading images
+        IMAGES = glob.glob(f'{directory}*')
+        for i in range(0, len(IMAGES)):
+            print ('Loading... Image... ' + IMAGES[i][len(directory):])
+            image = cv2.imread(IMAGES[i])
 
-# print('total reprojection error: ' + npz_calib_file['reproj_error'])
+            # undistort
+            undst = self.undistortPicture(image)
 
-distCoeff = npz_calib_file['distCoeff']
-intrinsic_matrix = npz_calib_file['intrinsic_matrix']
+            cv2.imshow('Undistorted Image',undst)
+            cv2.imwrite(f'{directory}undst-{IMAGES[i][len(directory):]}', undst)  
+        
+# directory = 'pixeltocoordinate_imagetesting/'
+# camerainfo = CameraParameters()
+# camerainfo.undistortFolder(directory)
+    
+#   # filename = 'GOPR0028.MP4'
 
-npz_calib_file.close()
 
-print('Finished loading files')
-print(' ')
-print('Starting to undistort the video....')
+# print('Loading data files')
 
-#Loading images
-IMAGES = glob.glob(f'{directory}*')
-for i in range(0, len(IMAGES)):
-    print ('Loading... Calibration Image... ' + IMAGES[i][len(directory):])
-    image = cv2.imread(IMAGES[i])
+# npz_calib_file = np.load('calibration_data.npz')
 
-    # undistort
-    undst = cv2.undistort(image, intrinsic_matrix, distCoeff, None)
+# # print('total reprojection error: ' + npz_calib_file['reproj_error'])
 
-    cv2.imshow('Undisorted Image',undst)
-    cv2.imwrite(f'{directory}undst-{IMAGES[i][len(directory):]}', undst)
+# distCoeff = npz_calib_file['distCoeff']
+# intrinsic_matrix = npz_calib_file['intrinsic_matrix']
+
+# npz_calib_file.close()
+
+# print('Finished loading files')
+# print(' ')
+# print('Starting to undistort the video....')
+
+# #Loading images
+# IMAGES = glob.glob(f'{directory}*')
+# for i in range(0, len(IMAGES)):
+#     print ('Loading... Calibration Image... ' + IMAGES[i][len(directory):])
+#     image = cv2.imread(IMAGES[i])
+
+#     # undistort
+#     undst = cv2.undistort(image, intrinsic_matrix, distCoeff, None)
+
+#     cv2.imshow('Undisorted Image',undst)
+#     cv2.imwrite(f'{directory}undst-{IMAGES[i][len(directory):]}', undst)  

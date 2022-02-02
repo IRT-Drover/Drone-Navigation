@@ -1,5 +1,6 @@
 # Converting pixels of the path into coordinates v2
 
+from multiprocessing import managers
 import cv2 as cv
 import numpy as np
 import glob
@@ -11,75 +12,121 @@ from astar import Node
 from pygeodesy.ellipsoidalVincenty import LatLon
 from pygeodesy import Datums
 
-def main():
+def distance(pixHome, pix1, resolution, magnification):
+    distance_img_y = (pixHome[1] - pix1[1]) / resolution
+    distance_map_y = distance_img_y / magnification
+    print("Vert meters to center: " + str(distance_map_y))
+    
+    distance_img_x = (pix1[0] - pixHome[0]) / resolution
+    distance_map_x = distance_img_x / magnification
+    print("Horiz meters to center: " + str(distance_map_x))
+    
+    return [distance_map_x, distance_map_y]
+
+def main(PATH, directory):
     #Camera Specs
+    # # focal length calculated from info given by manufacture
     # focal = 0.002 # focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
     # unitcell = 1.12 # size of single pixel in micrometers
     # resolution = 1/unitcell*1000000 # pixels per meter
     # sensor_H = 4656 # pixel dimensions of camera sensor/photo
     # sensor_V = 3496
-    focal = 0.0021 # focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
-    unitcell = 3 # size of single pixel in micrometers
-    resolution = 1/unitcell*1000000 # pixels per meter
     
-    img = cv.imread('CameraCalibration/CheckerboardPhotos_ELP-OV2710-2.1mm/undistorted_Image5.png')
+    npz_calib_file = np.load('CameraCalibration/calibration_data.npz')
+    intrinsic_matrix = npz_calib_file['intrinsic_matrix']
+    unitcell = 3 # size of single pixel in micrometers
+    #focal = 0.0035 # focal length by taking an image and calculated necessary focal length to produce an accurate real world distance
+    # AVG focal length from camera calibration
+    focal = (intrinsic_matrix[0][0]*unitcell + intrinsic_matrix[1][1]*unitcell)/2/1000000 # focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
+    resolution = 1/unitcell*1000000 # pixels per meter
+    print("focal length: " + str(focal))
+    
+    img = cv.imread(f'{directory}Distance_Testing-constantobjsize0.png')
     sensor_H = img.shape[1] # pixel dimensions of camera sensor/photo (should be the same thing)
     sensor_V = img.shape[0]
     
-    PATH = []
-    for i in [[0,0],[sensor_H/2-1,0],[sensor_H-1,0],[sensor_H-1,sensor_V/2-1],[sensor_H-1,sensor_V-1],[sensor_H/2-1,sensor_V-1],[0,sensor_V-1], [0,sensor_V/2-1]]:
-        testpixel = Node()
-        testpixel.x = i[0]
-        testpixel.y = i[1]
-        PATH.append(testpixel)
+    print(sensor_H)
+    print(sensor_V)
+    print("sensor dimensions in mm:")
+    print(sensor_H/resolution*1000) # in mm
+    print(sensor_V/resolution*1000) # in mm
     
-    # newNode = Node()
-    # print(newNode)
+    #TESTING PATH. ALL CORNERS AND MIDPOINTS, STARTING TOP LEFT
+    # PATH = []
+    # for i in [[0,0],[sensor_H/2-1,0],[sensor_H-1,0],[sensor_H-1,sensor_V/2-1],[sensor_H-1,sensor_V-1],[sensor_H/2-1,sensor_V-1],[0,sensor_V-1], [0,sensor_V/2-1]]:
+    #     testpixel = Node()
+    #     testpixel.x = i[0]
+    #     testpixel.y = i[1]
+    #     PATH.append(testpixel)
     
-    
-    # height_pix, width_pix = img.shape[:2]
-    # print(height_pix)
-    # print(width_pix)
-    
-    # imageheight = height_pix/resolution
-    # imagewidth = width_pix/resolution
-    
-    altitude = 1.6 # in meters
-    image_dist = (altitude * focal) / (altitude + focal) # not sure if physics
-    # mapheight = imageheight * altitude / image_dist # not sure if physics is right
-    magnification = image_dist/altitude #imageheight / mapheight #not sure if physics right
+    altitude = 1.16 # in meters
+    image_dist = (altitude * focal) / (altitude - focal)
+    magnification = image_dist/altitude
     print("image distance: " + str(image_dist))
     print("altitude: " + str(altitude))
     print("magnification: " + str(magnification))
     
-
     # image_center = Node()
     # pixel_y_0 = int((len(img))/2-1) # pixel y-coordinate
     # pixel_x_0 = int((len(img[0]))/2-1) # pixel x-coordinate 
-    pixel_y_0 = int((sensor_V)/2-1) # pixel y-coordinate
-    pixel_x_0 = int((sensor_H)/2-1) # pixel x-coordinate 
+    pixel_y_0 = int((sensor_V)//2) # pixel y-coordinate
+    pixel_x_0 = int((sensor_H)//2) # pixel x-coordinate 
     
     lat_0 = 40.61865173982036 #latitude
     long_0 = -74.56913024979528 #longitude
     drone = LatLon(40.61865173982036, -74.56913024979528, datum=Datums.NAD83) # default datum is WGS-84
 
-    # MPD_long = MPD(lat_0)[0]
-    # MPD_lat = MPD(lat_0)[1]
-
     rover_path = []
     
     print("---")
     
-    testingpath=[]
-    for pixel in PATH:
-        distance_img_y = (pixel_y_0 - pixel.y) / resolution
-        distance_map_y = distance_img_y / magnification
-        print("Vert meters to center: " + str(distance_map_y))
+    # TWO SETS OF PIXEL COORDINATES FOR CALCULATING DISTANCE
+    points1 = [(1200,845),(1022,659), (924,559), (870,502), (828,460), (807,436), (790,417)] # COMMENT OUT
+    pointsHome = [] # COMMENT OUT
+    for i in range(0,len(points1)):
+        pointsHome.append((pixel_x_0,points1[i][1]))
+    print(pointsHome)
+    # ALTITUDE FOR THE DIFFERENT DISTANCES
+    altitude = [1.774, 2.685, 3.595, 4.495, 5.421, 6.336, 7.25] # COMMENT OUT
+    # Finds the distance between any two points on an image and draws a line and adds 
+    for i in range(0,len(points1)):
+        image_dist = (altitude[i] * focal) / (altitude[i] - focal)
+        magnification = image_dist/altitude[i]
         
-        distance_img_x = (pixel.x - pixel_x_0) / resolution
-        distance_map_x = distance_img_x / magnification
-        print("Horiz meters to center: " + str(distance_map_x))
+        print('Calculating distance between... ' + str(pointsHome[i]) + " and " + str(points1[i]))
+        distance_map_x, distance_map_y = distance(pointsHome[i], points1[i], resolution, magnification)
+        distance_map = math.sqrt(distance_map_x**2 + distance_map_y**2)
+        cv.line(img, pointsHome[i], points1[i], (0, 255, 0), 3)
         
+        # displaying distance on image window
+        font = cv.FONT_HERSHEY_SIMPLEX
+        cv.putText(img, str(distance_map) + " meters-->",
+                   (pointsHome[i][0]-400, pointsHome[i][1]+5),
+                   font, 0.7, (255, 0, 0), 2)
+
+    cv.imshow('Distance between Points',img)
+    cv.imwrite(f'{directory}Distance_Testing-constantobjsize0-dist_measurements.png', img)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+
+    # Finds physical x- y-distance to a point and returns the GPS coordinates
+    for i in range(0,len(PATH)):
+        pixelCenter = [pixel_x_0, pixel_y_0]
+        # image_dist = (altitude[i] * focal) / (altitude[i] - focal) # DELETE
+        # magnification = image_dist/altitude[i] # DELETE
+        
+        distance_map_x, distance_map_y = distance(pixelCenter, [PATH[i].x, PATH[i].y], resolution, magnification)
+        # distance_map_x, distance_map_y = distance(pixelCenter, [pixel.x, pixel.y], resolution, magnification)
+        
+        # distance_img_y = (pixel_y_0 - pixel.y) / resolution
+        # distance_map_y = distance_img_y / magnification
+        # print("Vert meters to center: " + str(distance_map_y))
+        
+        # distance_img_x = (pixel.x - pixel_x_0) / resolution
+        # distance_map_x = distance_img_x / magnification
+        # print("Horiz meters to center: " + str(distance_map_x))
+        
+        distance_map = math.sqrt(distance_map_x**2 + distance_map_y**2)
         
         bearing = 0 # compass 360 degrees; north = 0 degrees
         if distance_map_x != 0:
@@ -88,8 +135,6 @@ def main():
                 bearing += 180
         elif distance_map_y < 0:
             bearing = 180
-
-        distance_map = math.sqrt(distance_map_x**2 + distance_map_y**2)
         
         print("\nBearing: " + str(bearing))
         print("Distance: " + str(distance_map) + "\n")
@@ -98,19 +143,26 @@ def main():
         waypoint = drone.destination(distance_map, bearing)
         
         rover_path.append([waypoint.lat, waypoint.lon])
-        testingpath.append(waypoint)
     
     print("Drone Coordinate: ")
     print(drone)
     print([lat_0,long_0])
     print("Path:")
-    for i in testingpath:
-        print(i)
-    print(rover_path)
+    for wp in rover_path:
+        print(wp)
     return rover_path
 
-
-ROVERPATH = main()
+directory = 'CameraCalibration/pixeltocoordinate_imagetesting/'
+PATH = []
+img = cv.imread(f'{directory}Distance_Testing-constantobjsize0.png')
+sensor_H = img.shape[1] # pixel dimensions of camera sensor/photo (should be the same thing)
+sensor_V = img.shape[0]
+for i in [[0,0],[825,460],[sensor_H, sensor_V//2]]:
+    testpixel = Node()
+    testpixel.x = i[0]
+    testpixel.y = i[1]
+    PATH.append(testpixel)
+ROVERPATH = main(PATH, directory)
 
 print("---\nChecking Distance")
 

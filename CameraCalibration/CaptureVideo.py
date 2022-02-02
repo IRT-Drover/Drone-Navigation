@@ -13,10 +13,11 @@ fshape = frame.shape
 fheight = fshape[0]
 fwidth = fshape[1]
 if grabbed == False:
-    print('Unsuccessful')
+    raise Exception('Unsuccessful')
 else:
-    print(f'{fwidth}(H) {fheight}(V)')
+    print(f'Successful: {fwidth}(H) {fheight}(V)')
     
+ 
 # Define the codec and create VideoWriter object
 # Windows
 # fourcc = cv.VideoWriter_fourcc(*'DIVX')
@@ -24,7 +25,7 @@ else:
 
 # Mac
 fourcc = cv.VideoWriter_fourcc(*'MJPG')
-out = cv.VideoWriter('CameraCalibrationVideo.mp4', fourcc, 20.0, (fwidth,fheight))
+out = cv.VideoWriter('CameraCalibrationVideo1.mp4', fourcc, 20.0, (fwidth,fheight))
 print("Video started...")
 while camera.isOpened():
     ret, frame = camera.read()
@@ -34,7 +35,7 @@ while camera.isOpened():
     # write the frame
     out.write(frame)
     cv.imshow('frame', frame)
-    if cv.waitKey(1) == ord('q'):
+    if cv.waitKey(1) == 27:
         break
 # Release everything if job is finished
 camera.release()
