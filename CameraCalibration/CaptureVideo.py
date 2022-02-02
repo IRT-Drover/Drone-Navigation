@@ -1,21 +1,29 @@
 import numpy as np
 import cv2 as cv
-cap = cv.VideoCapture(1)
+
+# Initiating Camera
+camera = cv.VideoCapture(1)
+
+# Check frame dimensions
+print("Checking Camera Dimensions...")
+(grabbed, frame) = camera.read()
+fshape = frame.shape
+fheight = fshape[0]
+fwidth = fshape[1]
+if grabbed == False:
+    raise Exception('Unsuccessful')
+else:
+    print(f'Successful: {fwidth}(H) {fheight}(V)')
+    
+ 
 # Define the codec and create VideoWriter object
-fourcc = cv.VideoWriter_fourcc(*'DIVX')
-out = cv.VideoWriter('CameraCalibrationVideo.avi', fourcc, 20.0, (640,  480))
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        print("Can't receive frame (stream end?). Exiting ...")
-        break
-    frame = cv.flip(frame, 0)
-    # write the flipped frame
-    out.write(frame)
-    cv.imshow('frame', frame)
-    if cv.waitKey(1) == ord('q'):
-        break
-# Release everything if job is finished
-cap.release()
-out.release()
-cv.destroyAllWindows()
+# Windows
+# fourcc = cv.VideoWriter_fourcc(*'DIVX')
+# out = cv.VideoWriter('CameraCalibrationVideo.avi', fourcc, 20.0, (fwidth,fheight))
+
+# Mac
+fourcc = cv.VideoWriter_fourcc(*'MJPG')
+out = cv.VideoWriter('CameraCalibrationVideo1.mp4', fourcc, 20.0, (fwidth,fheight))
+print("Video started...")
+while camera.isOpened():
+    ret, frame = camera.read()
