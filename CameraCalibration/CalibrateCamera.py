@@ -96,13 +96,16 @@ def ImageCollect(filename, checkerboard_directory):
 #size of the square, this should be an integer.  It is assumed that the checkerboard squares are
 #square.
 
-#This function first initializes a series of variables. Opts will store the true object points
-#(i.e. checkerboard points).  Ipts will store the points as determined by the calibration images.
+#This function first initializes a series of variables. selected_opts will store the true object points
+#(i.e. checkerboard points) of selected images with good corners.
+#Ipts will store the points as determined by the calibration images.
 #The function then loops through each image.  Each image is converted to grayscale, and the
-#checkerboard corners are located.  If it is successful at finding the correct number of corners
-#then the true points and the measured points are stored into opts and ipts, respectively. The
-#image with the checkerboard points are then displays.  If the points are not found that image
-#is skipped.  Once the desired number of checkerboard points are acquired the calibration
+#checkerboard corners are located.  If it is successful at finding the correct number of corners, the
+#corners are displayed with the image.
+#Click x to not include image, click any other key to not include image in cameracalibration.
+#If the points are not found that image or image isn't selected, is skipped.
+#If the points are found and the image is selected, all true points and the measured points are stored into selected_opts and seected_ipts.
+#Once all images have been analyzed for checkerboard points, the calibration
 #parameters (intrinsic matrix and distortion coefficients) are calculated.
 
 #The distortion parameter are saved into a numpy file (calibration_data.npz).  The total
@@ -129,7 +132,7 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
 
     # EDITED
     IMAGES = glob.glob(f'{checkerboard_directory}Calibration*.png')
-    print(IMAGES)
+    print(f'Total of {len(IMAGES)} calibration images found in {checkerboard_directory}\n')
     for i in range(1, n_boards+1):
 
         #Loading images
@@ -153,22 +156,25 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
             #Show the image with the chessboard corners overlaid.
             cv2.imshow("Corners", image)
 
-        char = cv2.waitKey(10000)
-        if char != 120 and found == True:
-            #Add the "true" checkerboard corners
-            opts.append(objp)
-            
-            ipts.append(corners)
-        #char = cv2.waitKey(0)
+            char = cv2.waitKey(10000)
+            if char != 120:
+                #Add the "true" checkerboard corners
+                opts.append(objp)
+                
+                #Add the measured checkerboard corners
+                ipts.append(corners)
+            #char = cv2.waitKey(0)
 
     cv2.destroyWindow("Corners")
 
     print ('')
-    print ('Finished processes images.')
+    print ('Finished processing images.')
+    print (f'Out of {len(IMAGES)} images, {len(ipts)} images were selected by you.')
+    print ('')
 
     #Calibrate the camera
     print ('Running Calibrations...')
-    print(' ')
+    print (' ')
     ret, intrinsic_matrix, distCoeff, rvecs, tvecs = cv2.calibrateCamera(opts, ipts, grey_image.shape[::-1],None,None)
 
     #Save matrices
