@@ -1,5 +1,5 @@
-
-'''python astar work in progress'''
+# astar algorithm pathfinding
+# input is an image called maze.png
 import cv2 as cv
 import numpy as np
 import math
@@ -34,6 +34,10 @@ class Node():
         # overload < operator for f value; this is needed for the heapQueue in aStar algorithm
         return self.f < other.f
 
+    def __hash__(self):
+        string = str(self.x) + "," + str(self.y)
+        return hash(string)
+
 
 def isValid(node, image):
     '''checks if a node's coordinates exist on an image ndarray'''
@@ -44,11 +48,17 @@ def isValid(node, image):
     return True
 
 
-def calculateG(parentNode, childNode, image):
+def calculateG(parentNode, childNode, image, isDiagonal):
     '''return the cost of the child node as the color difference of its parent using the image ndarray'''
     parentBGR = image[parentNode.x][parentNode.y]
+    # parentBGR = parentBGR.astype('int8')
     childBGR = image[childNode.x][childNode.y]
-    g = parentNode.g + math.sqrt((parentBGR[0]-childBGR[0])**2 + (parentBGR[1]-childBGR[1])**2 + (parentBGR[2]-childBGR[2])**2) # difference between color values as 3d points
+    # childBGR = childBGR.astype('int8')
+    if not isDiagonal:
+        g = 1 + parentNode.g + math.sqrt((parentBGR[0]-childBGR[0])**2 + (parentBGR[1]-childBGR[1])**2 + (parentBGR[2]-childBGR[2])**2) # difference between color values as 3d points
+    else:
+        g = math.sqrt(2) + parentNode.g + math.sqrt((parentBGR[0]-childBGR[0])**2 + (parentBGR[1]-childBGR[1])**2 + (parentBGR[2]-childBGR[2])**2) # difference between color values as 3d points
+    # g = parentNode.g + 1
     return g
 
 def calculateH(node, endNode):
@@ -62,13 +72,14 @@ def reconstructPath(node):
     while node is not None:
         path.append(node)
         node = node.parent
-    return path[::-1] # Return reversed path
+    return path[::-1] ### Return reversed path, is there a faster way to do this
 
 def aStar(startNode, endNode, image):
     cols = image.shape[0]
     rows = image.shape[1]
 
-    openQueue = [] # HeapQueue for discovered nodes that may need to be visited
+    openQueue = [] # Priority queue for discovered nodes that may need to be visited (priority is F value of node)
+    closedSet = set() # Hash set for visited nodes that should not be revisited (equality is based on coordinates)
 
     startNode.g = 0
     startNode.h = calculateH(startNode, endNode)
@@ -77,12 +88,18 @@ def aStar(startNode, endNode, image):
 
     while (len(openQueue) != 0):
         currentNode = heapq.heappop(openQueue) # node with the smallest f value
-        print(currentNode)
+
+        if currentNode in closedSet:
+            continue
+
+        closedSet.add(currentNode)
+        # print(currentNode)
 
         if currentNode == endNode: # reached the end
             return reconstructPath(currentNode)
 
-        for newPosition in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # adjacent nodes
+        #for newPosition in [(0, -1), (0, 1), (-1, 0), (1, 0)]: # adjacent nodes, not including diagonals
+        for newPosition in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # adjacent nodes including diagonals
 
             nodeX = currentNode.x + newPosition[0]
             nodeY = currentNode.y + newPosition[1]
@@ -90,35 +107,49 @@ def aStar(startNode, endNode, image):
             child.x = nodeX
             child.y = nodeY
             # print("Child: ", child)
-
+            
             if not isValid(child, image):
                 continue
 
+            # if np.array_equal(image[child.x, child.y], (0,0,0)): # black pixel
+            #     continue
+
+            if child in closedSet: # node has been visited
+                continue
+
+
+            if newPosition[0] == 0 or newPosition[1] == 0: # adjacent
+                g = calculateG(currentNode, child, image, False)
+            else: # diagonal
+                g = calculateG(currentNode, child, image, True)
+            h = calculateH(child, endNode)
+
             child.parent = currentNode
-            child.g = calculateG(currentNode, child, image)
-            child.h = calculateH(child, endNode)
-            child.f = child.g + child.h
-
-            if child not in openQueue:
-                heapq.heappush(openQueue, child)
-
+            child.g = g
+            child.h = h
+            child.f = g + h
+            
+            heapq.heappush(openQueue, child)
+        
+                
     return "failure"
-
+    
+                    
 def main():
-    img = cv.imread(cv.samples.findFile("SimpleObstacle.png")) # img is a numpy ndarray
-    img2 = cv.imread(cv.samples.findFile("SimpleObstacle.png")) # img is a numpy ndarray
-
+    img = cv.imread(cv.samples.findFile("maze.png")) # img is a numpy ndarray
+    img = img.astype('int8') # cast to signed integer so subtraction will not result in overflow, THIS USES SIGNIFICANTLY MORE MEMORY AND RUNTIME BUT IS NECCESARY FOR COLORS
+    img2 = cv.imread(cv.samples.findFile("maze.png")) # img is a numpy ndarray
+    
     if img is None:
         sys.exit("Could not read the image.")
-
+    
     #img = img.tolist() # row list of column list of pixel RGB list
-    cv.imshow("img.png", img2)
+    #cv.imshow("img.png", img2)
 
     start = Node()
     start.x = 0
     start.y = 0
     end = Node()
-
     end.x = len(img)-1
     end.y = len(img[len(img)-1])-1
 
@@ -126,13 +157,11 @@ def main():
     # print("End: ", end)
 
     path = aStar(start, end, img)
-    # print(path)
     for coords in path:
-        img2[coords.y, coords.x] = [0,0,255]
-
+        # print("COORDS:" + str(coords))
+        img2[coords.x, coords.y] = [0,0,255]
+    
     cv.imwrite("test.png", img2)
 
 
-
-
-#main()
+main()
