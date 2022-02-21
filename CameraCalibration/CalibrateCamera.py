@@ -1,11 +1,10 @@
-#Cam_calib_web.py
-#Created by Chris Rillahan
-#Last Updated: 02/03/2015
+#CalibrateCamera.py
+#Last Updated: 02/21/2021
 #Last Updated with Python 3.7.0, OpenCV 4.5.4 and NumPy 1.21.5
 
-#This program calculates the distortion parameters of a GoPro camera.
+#This program calculates the distortion parameters of a camera.
 #A video must first be taken of a chessboard pattern moved to a variety of positions
-#in the field of view with a GoPro.
+#in the field of view with a camera.
 
 from logging import raiseExceptions
 import cv2, sys
