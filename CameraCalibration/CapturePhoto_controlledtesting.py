@@ -1,25 +1,22 @@
 import cv2
 import glob
 import random
-from Undistort_CorrectTilt import CameraParameters
+from Undistort import CameraParameters
 
 # Input preassigned coordinates
 coordinates = []
 
 # Function to draw a crosshair at the center of the image
-def crosshair(frame):
-    # frame dimensions
-    fheight = frame.shape[0]
-    fwidth = frame.shape[1]
+def crosshair(frame, fheight, fwidth):
     # drawing a crosshair
-    cv2.line(frame, (fwidth//2-100, fheight//2), (fwidth//2+100, fheight//2), (0, 255, 0))
-    cv2.line(frame, (fwidth//2, fheight//2-100), (fwidth//2, fheight//2+100), (0, 255, 0))
+    cv2.line(frame, (fwidth//2-350, fheight//2), (fwidth//2+350, fheight//2), (0, 255, 0), 1)
+    cv2.line(frame, (fwidth//2, fheight//2-350), (fwidth//2, fheight//2+350), (0, 255, 0), 1)
 # Function to draw a dot at coordinates in the image set before camera feed starts
 # parameters of .circle: frame, coordinates, radius, color, line thickness (-1 will fill in circle)
 def point(frame, coordinates, color):
     if len(coordinates) != 0 and len(coordinates[0]):
         for coord in coordinates:
-            cv2.circle(frame, coord, 6, color, 3)
+            cv2.circle(frame, coord, 4, color, 3)
         
 # function to display the coordinates of
 # of the points clicked on the image
@@ -37,7 +34,7 @@ def click_event(event, x, y, flags, params):
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(frame, str(x) + ',' +
                     str(y), (x,y), font,
-                    1, (0,0,255), 2)
+                    0.7, (0,0,255), 2)
         point(frame, [(x,y)], (0,0,255))
         point(frame, [(fwidth//2,y)], (0,0,255))
 
@@ -51,6 +48,7 @@ if not camera.isOpened():
 # Camera Info for undistortion
 cameraparameters = CameraParameters()
 
+ret,frame = camera.read()
 print("Camera on...")
 result = True
 
@@ -59,18 +57,21 @@ result = True
 # Press space to keep photo or press any other key to retake.
 while(result):
     ret,frame = camera.read()
-    fheight = frame.shape[0]
-    fwidth = frame.shape[1]
+
     # if frame is read correctly ret is True
     if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
         break
     
+    # camera dimensions
+    fheight = frame.shape[0]
+    fwidth = frame.shape[1]
+    
     # undistorts frame
     frame = cameraparameters.undistortPicture(frame)
     
     # adding a crosshair
-    crosshair(frame)
+    crosshair(frame, fheight, fwidth)
     # adding points
     point(frame, coordinates, (255, 0, 0))
     

@@ -8,7 +8,6 @@
 #in the field of view with a GoPro.
 
 from logging import raiseExceptions
-from re import I
 import cv2, sys
 import numpy as np
 import glob
