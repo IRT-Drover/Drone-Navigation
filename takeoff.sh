@@ -5,16 +5,16 @@ prompt_err() {
 }
 
 status() {
-if !( $1 -eq 0 ); then
+$1
+if !( $? -eq 0 ); then
   prompt_err
   exit -1
 fi
 }
 
 FLIGHTSCRIPT=$1
-cd /Users/charlesjiang/Desktop/NJCCP_Python
+cd /home/pi/Desktop
 
-echo
 echo 'Connect Mission Planner before preceding'
 echo
 echo 'READY TO EXECUTE TAKEOFF SCRIPT...' $FLIGHTSCRIPT
@@ -28,12 +28,7 @@ if [ $TAKEOFFVAR == 'takeoff' ]; then
   #     echo Attempting to connect
   #     sleep 1
   # done
-  status 'python scriptname.py --connect udp:127.0.0.1:14551'
+  status 'python '$FLIGHTSCRIPT' --connect udp:127.0.0.1:14551'
 elif [ $TAKEOFFVAR == 'cancel' ]; then
   exit -1
 fi
-
-# Access photo and run astar
-# Run pixel to coordinates
-
-# Send coordinate info to computer on ground

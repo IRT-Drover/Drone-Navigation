@@ -2,27 +2,46 @@
 
 echo Welcome to Drover
 
-VEHICLE='simulation'
-FLIGHTSCRIPT='SimpleTakeOffLand.py'
+# run to allow permission to run:
+# ls -l filename.sh
+# chmod 755 filename.sh
+
+VEHICLE='rover'
+FLIGHTSCRIPT='Roversimulationtest.py'
+
+prompt_err() {
+  echo -e "COMMAND FAILED"
+}
+
+status() {
+$1
+if !( $? -eq 0 ); then
+  prompt_err
+  exit -1
+fi
+}
 
 # On Raspberry pi (linux)
-# gnome-terminal -- "cd /directory && ./mavproxyset.sh" &
-# gnome-terminal --noclose "cd /directory && ./BashTesting.sh" $FLIGHTSCRIPT &
-# exit # don't know what exit does or if it's necessary
-
-# On windows
-# xterm -e -hold "cd /directory && ./mavproxyset.sh simulation" &
-# xterm -e -hold "cd /directory && ./BashTesting.sh SimpleTakeOffLand.py" &
-# exit # don't know what exit does or if it's necessary
+lxterminal --command "cd /home/pi/Desktop && ./mavproxysetup.sh "$VEHICLE &
+lxterminal --command "cd /home/pi/Desktop && ./takeoff.sh "$FLIGHTSCRIPT &
 
 #On Mac
-osascript -e 'tell app "Terminal"
-  do script "cd /Users/charlesjiang/Downloads && ./mavproxysetup.sh simulation"
-  do script "cd /Users/charlesjiang/Downloads && ./BashTesting.sh SimpleTakeOffLand.py"
-end tell'
+# osascript -e 'tell app "Terminal"
+#   do script "cd /Users/charlesjiang/Downloads && ./mavproxysetup.sh drone"
+#   do script "cd /Users/charlesjiang/Downloads && ./takeoff.sh SimpleTakeOffLand.py"
+# end tell'
 
-# if vehicle is drone:
-# Access photo and run astar
-# Run pixel to coordinates
+if [ $VEHICLE -eq 'drone' ]; then
+  # # Access photo and run astar
+  # # Save pixel coordinate data and image with path drawn on it
+  # status 'python astar.py'
 
-# Send coordinate info to computer on ground
+  # # Run pixel to coordinates
+  # # Save coordinate data to file
+  # status 'python PixelstoCoordinates.py'
+
+# Send coordinate data to computer on ground
+
+
+# bad interpreter error because of differing carriage return characters:
+# sed -i -e 's/\r$//' file.sh
