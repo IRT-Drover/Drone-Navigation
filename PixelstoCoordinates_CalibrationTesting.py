@@ -155,6 +155,7 @@ def main(PATH, directory):
     print("Path:")
     for wp in rover_path:
         print(wp)
+        
     return rover_path
 
 directory = 'CameraCalibration/pixeltocoordinate_imagetesting/'
