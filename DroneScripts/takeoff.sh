@@ -15,10 +15,13 @@ fi
 FLIGHTSCRIPT=$1
 cd /home/pi/Desktop
 
+echo
 echo 'Connect Mission Planner before preceding'
 echo
 echo 'READY TO EXECUTE TAKEOFF SCRIPT...' $FLIGHTSCRIPT
+echo
 echo "Type 'takeoff' when ready to arm and takeoff or 'q' to cancel..."
+echo "Then, arm vehicle in mission planner or type 'arm throttle force' in the mavproxysetup window..."
 read -p '>>> ' TAKEOFFVAR
 if [ $TAKEOFFVAR == 'takeoff' ]; then
   echo '||>>>RUNNING TAKEOFF SCRIPT<<<||'
