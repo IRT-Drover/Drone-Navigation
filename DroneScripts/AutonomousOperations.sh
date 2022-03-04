@@ -7,7 +7,7 @@ echo Welcome to Drover
 # chmod 755 filename.sh
 
 VEHICLE='rover'
-FLIGHTSCRIPT='Roversimulationtest.py'
+FLIGHTSCRIPT='WayPointNavScript.py'
 
 prompt_err() {
   echo -e "COMMAND FAILED"
