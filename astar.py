@@ -38,7 +38,6 @@ class Node():
         string = str(self.x) + "," + str(self.y)
         return hash(string)
 
-
 def isValid(node, image):
     '''checks if a node's coordinates exist on an image ndarray'''
     if node.x < 0 or node.y < 0:
@@ -74,7 +73,7 @@ def reconstructPath(node):
         node = node.parent
     return path[::-1] ### Return reversed path, is there a faster way to do this
 
-def aStar(startNode, endNode, image):
+def aStar_algorithm(startNode, endNode, image):
     cols = image.shape[0]
     rows = image.shape[1]
 
@@ -131,17 +130,19 @@ def aStar(startNode, endNode, image):
             
             heapq.heappush(openQueue, child)
         
-                
     return "failure"
-    
+            
                     
-def main():
-    img = cv.imread(cv.samples.findFile("maze.png")) # img is a numpy ndarray
-    img = img.astype('int8') # cast to signed integer so subtraction will not result in overflow, THIS USES SIGNIFICANTLY MORE MEMORY AND RUNTIME BUT IS NECCESARY FOR COLORS
-    img2 = cv.imread(cv.samples.findFile("maze.png")) # img is a numpy ndarray
+def aStar(img_name, directory_path=''):
+    img = cv.imread(directory_path+img_name)
     
     if img is None:
         sys.exit("Could not read the image.")
+        
+    # img = cv.imread(cv.samples.findFile("maze.png")) # img is a numpy ndarray
+    img = img.astype('int8') # cast to signed integer so subtraction will not result in overflow, THIS USES SIGNIFICANTLY MORE MEMORY AND RUNTIME BUT IS NECCESARY FOR COLORS
+    path_on_img = cv.imread(directory_path+img_name)
+    # img2 = cv.imread(cv.samples.findFile("maze.png")) # img is a numpy ndarray
     
     #img = img.tolist() # row list of column list of pixel RGB list
     #cv.imshow("img.png", img2)
@@ -156,12 +157,17 @@ def main():
     # print("Start: ", start)
     # print("End: ", end)
 
-    path = aStar(start, end, img)
-    for coords in path:
-        # print("COORDS:" + str(coords))
-        img2[coords.x, coords.y] = [0,0,255]
+    path = aStar_algorithm(start, end, img)
+    # for coords in path:
+    #     # print("COORDS:" + str(coords))
+    #     path_on_img[coords.x, coords.y] = [0,0,255]
     
-    cv.imwrite("test.png", img2)
+    for i in range(len(path)):
+        # print("COORDS:" + str(coords))
+        path[i] = [path[i].x, path[i].y]
+        
+        path_on_img[path[i][0], path[i][1]] = [0,0,255]
 
-
-main()
+    cv.imwrite(f'{directory_path}{img_name[:-4]}-p.png', path_on_img)
+    
+    return [path, path_on_img]

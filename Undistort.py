@@ -11,7 +11,7 @@ import cv2, time, sys
 import glob
 
 class CameraParameters:
-    npz_calib_file = np.load('calibration_data.npz')
+    npz_calib_file = np.load('CameraCalibration/calibration_data.npz')
     distCoeff = npz_calib_file['distCoeff']
     intrinsic_matrix = npz_calib_file['intrinsic_matrix']
     npz_calib_file.close()

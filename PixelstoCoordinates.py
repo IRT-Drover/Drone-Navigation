@@ -4,6 +4,7 @@ import cv2 as cv
 import numpy as np
 import glob
 import math
+import sys
 from astar import Node
 
 # PyGeodesy Github: https://github.com/mrJean1/PyGeodesy
@@ -11,18 +12,11 @@ from astar import Node
 from pygeodesy.ellipsoidalVincenty import LatLon
 from pygeodesy import Datums
 
-def distance(pixHome, pix1, resolution, magnification):
-    distance_img_y = (pixHome[1] - pix1[1]) / resolution
-    distance_map_y = distance_img_y / magnification
-    print("Vert meters to center: " + str(distance_map_y))
+def pixelstocoordinates(PATH, pictureData):
+    if PATH is None or len(PATH)==0:
+        return None
+        # sys.exit("No pixel path found.")
     
-    distance_img_x = (pix1[0] - pixHome[0]) / resolution
-    distance_map_x = distance_img_x / magnification
-    print("Horiz meters to center: " + str(distance_map_x))
-    
-    return [distance_map_x, distance_map_y]
-
-def main(PATH, directory):
     #Camera Specs
     # # focal length calculated from info given by manufacture
     # focal = 0.002 # focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
@@ -31,17 +25,23 @@ def main(PATH, directory):
     # sensor_H = 4656 # pixel dimensions of camera sensor/photo
     # sensor_V = 3496
     
+    #Picture Data
+    drone = LatLon(pictureData[0][0], pictureData[0][1], datum=Datums.NAD83) # default datum is WGS-84
+    altitude = pictureData[1]
+    
+    #Camera Info
     npz_calib_file = np.load('CameraCalibration/calibration_data.npz')
     intrinsic_matrix = npz_calib_file['intrinsic_matrix']
+    camera_shape = npz_calib_file['camera_dimensions']
+    npz_calib_file.close()
     unitcell = 3 # size of single pixel in micrometers
     # AVG focal length from camera calibration
     focal = (intrinsic_matrix[0][0]*unitcell + intrinsic_matrix[1][1]*unitcell)/2/1000000 - 0.000117# focal length in meters #x=sensor_hdimens*pixelsize_in_micrometers/1,000,000 #f = x/(2tan(angleofview/2))
     resolution = 1/unitcell*1000000 # pixels per meter
     print("focal length: " + str(focal))
     
-    img = cv.imread(f'{directory}Distance_Testing-constantobjsize1.png')
-    sensor_H = img.shape[1] # pixel dimensions of camera sensor/photo (should be the same thing)
-    sensor_V = img.shape[0] # WILL JUST GET PIXEL DIMENSIONS FROM CALIBRATION_DATA.NPZ DURING CAMERA CALIBRATION
+    sensor_H = camera_shape[0]
+    sensor_V = camera_shape[1]
     
     print(sensor_H)
     print(sensor_V)
@@ -57,7 +57,7 @@ def main(PATH, directory):
     #     testpixel.y = i[1]
     #     PATH.append(testpixel)
     
-    altitude = 1.16 # in meters
+    # altitude = 6.5 # in meters
     image_dist = (altitude * focal) / (altitude - focal)
     magnification = image_dist/altitude
     print("image distance: " + str(image_dist))
@@ -65,22 +65,20 @@ def main(PATH, directory):
     print("magnification: " + str(magnification))
     
     pixel_y_0 = int((sensor_V)//2) # pixel y-coordinate
-    pixel_x_0 = int((sensor_H)//2) # pixel x-coordinate 
+    pixel_x_0 = int((sensor_H)//2) # pixel x-coordinate
+    pixelCenter = [pixel_x_0, pixel_y_0]
     
-    lat_0 = 40.61865173982036 #latitude
-    long_0 = -74.56913024979528 #longitude
-    drone = LatLon(40.61865173982036, -74.56913024979528, datum=Datums.NAD83) # default datum is WGS-84
+    # lat_0 = 40.61865173982036 #latitude
+    # long_0 = -74.56913024979528 #longitude
+    # drone = LatLon(40.61865173982036, -74.56913024979528, datum=Datums.NAD83) # default datum is WGS-84
+
+    print("---")
 
     rover_path = []
-    
-    print("---")
-    
 
     # Finds physical x- y-distance to a point and returns the GPS coordinates
     for i in range(0,len(PATH)):
-        pixelCenter = [pixel_x_0, pixel_y_0]
-        
-        distance_map_x, distance_map_y = distance(pixelCenter, [PATH[i].x, PATH[i].y], resolution, magnification)
+        distance_map_x, distance_map_y = distance(pixelCenter, PATH[i], resolution, magnification)
         
         distance_map = math.sqrt(distance_map_x**2 + distance_map_y**2)
         
@@ -102,20 +100,31 @@ def main(PATH, directory):
     
     print("Drone Coordinate: ")
     print(drone)
-    print([lat_0,long_0])
+    # print([lat_0,long_0])
     print("Path:")
     for wp in rover_path:
         print(wp)
     return rover_path
 
-directory = 'CameraCalibration/pixeltocoordinate_imagetesting/'
-PATH = []
-img = cv.imread(f'{directory}Distance_Testing-constantobjsize1.png')
-sensor_H = img.shape[1] # pixel dimensions of camera sensor/photo (should be the same thing)
-sensor_V = img.shape[0]
-for i in [[0,0],[825,460],[sensor_H, sensor_V//2]]:
-    testpixel = Node()
-    testpixel.x = i[0]
-    testpixel.y = i[1]
-    PATH.append(testpixel)
-ROVERPATH = main(PATH, directory)
+def distance(pixHome, pix1, resolution, magnification):
+    distance_img_y = (pixHome[1] - pix1[1]) / resolution
+    distance_map_y = distance_img_y / magnification
+    print("Vert meters to center: " + str(distance_map_y))
+    
+    distance_img_x = (pix1[0] - pixHome[0]) / resolution
+    distance_map_x = distance_img_x / magnification
+    print("Horiz meters to center: " + str(distance_map_x))
+    
+    return [distance_map_x, distance_map_y]
+
+# directory = 'CameraCalibration/pixeltocoordinate_imagetesting/'
+# PATH = []
+# img = cv.imread(f'{directory}Distance_Testing-constantobjsize1.png')
+# sensor_H = img.shape[1] # pixel dimensions of camera sensor/photo (should be the same thing)
+# sensor_V = img.shape[0]
+# for i in [[0,0],[825,460],[sensor_H, sensor_V//2]]:
+#     testpixel = Node()
+#     testpixel.x = i[0]
+#     testpixel.y = i[1]
+#     PATH.append(testpixel)
+# ROVERPATH = pixelstocoordinates(PATH, directory)
