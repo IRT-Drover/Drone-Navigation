@@ -197,7 +197,8 @@ def ImageProcessing(n_boards, board_w, board_h, square_size, checkerboard_direct
 
     #Save data
     print ('Saving data file...')
-    np.savez('calibration_data', distCoeff=distCoeff, intrinsic_matrix=intrinsic_matrix)
+    camera_dimensions = grey_image.shape[::-1] # width by length
+    np.savez('calibration_data', distCoeff=distCoeff, intrinsic_matrix=intrinsic_matrix, camera_dimensions=camera_dimensions)
     print ('Calibration complete')
 
     #Undistort Images
