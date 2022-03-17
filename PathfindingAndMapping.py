@@ -95,14 +95,14 @@ class PathfindingAndMapping:
     def pathfindingandmapping(self, startend_list):
         images = glob.glob(self.flight + "*[!-p].png")
         images.sort(key=os.path.getmtime)
-        GPSPaths = []
+        GPSPATHS = []
         for img_num in range(1, len(images) + 1):
             pixelPath = self.astar(images[img_num-1][len(self.flight):], img_num+2, startend_list[img_num-1][0], startend_list[img_num-1][1])
-            GPSPaths.append(self.pixelToCoords(pixelPath, img_num+2))
+            GPSPATHS.append(self.pixelToCoords(pixelPath, img_num+2))
             
         # Saves data as a 2D list to npz file
-        np.savez(self.flight+'GPSDATA_TOSEND', GPSPATHS=GPSPaths)
-        return GPSPaths
+        np.savez(self.flight+'GPSDATA_TOSEND', GPSPATHS=GPSPATHS)
+        return GPSPATHS
 
     # Creates text file called fn in flight folder if not already created
     # Appends 'Picture #' and data in separate lines
@@ -145,6 +145,7 @@ GPSPaths = flightpathmap.pathfindingandmapping(startendlist)
 # Creating kmz file to view on maps
 npzfile = np.load(flightpathmap.getflight()+'GPSDATA_TOSEND.npz')
 GPSPaths = npzfile['GPSPATHS']
+npzfile.close()
 kml=simplekml.Kml()
 for coord in GPSPaths[0]:
     kml.newpoint(coords=[(coord[1],coord[0])])
