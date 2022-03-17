@@ -133,7 +133,7 @@ def aStar_algorithm(startNode, endNode, image):
     return "failure"
             
                     
-def aStar(img_name, directory_path=''):
+def aStar(img_name, startpixel,  endpixel, directory_path=''):
     img = cv.imread(directory_path+img_name)
     
     if img is None:
@@ -148,26 +148,37 @@ def aStar(img_name, directory_path=''):
     #cv.imshow("img.png", img2)
 
     start = Node()
-    start.x = 0
-    start.y = 0
+    if startpixel == -1:
+        start.x = 0
+        start.y = 0
+    else:
+        start.x = startpixel[1]-1
+        start.y = startpixel[0]-1
+        
     end = Node()
-    end.x = len(img)-1
-    end.y = len(img[len(img)-1])-1
+    if endpixel == -1:
+        end.x = len(img)-1
+        end.y = len(img[len(img)-1])-1
+    else:
+        end.x = endpixel[1]-1
+        end.y = endpixel[0]-1
 
-    # print("Start: ", start)
-    # print("End: ", end)
+    print("Start: ", start)
+    print("End: ", end)
 
     path = aStar_algorithm(start, end, img)
     # for coords in path:
     #     # print("COORDS:" + str(coords))
     #     path_on_img[coords.x, coords.y] = [0,0,255]
     
-    for i in range(len(path)):
-        # print("COORDS:" + str(coords))
-        path[i] = [path[i].x, path[i].y]
-        
-        path_on_img[path[i][0], path[i][1]] = [0,0,255]
+    if path != "failure":
+        for i in range(len(path)):
+            print("COORDS: " + str(path[i]))
+            print("x y: " , path[i].x, path[i].y)
+            path[i] = [path[i].y, path[i].x]
+            
+            path_on_img[path[i][1], path[i][0]] = [0,0,255]
 
-    cv.imwrite(f'{directory_path}{img_name[:-4]}-p.png', path_on_img)
+        cv.imwrite(f'{directory_path}{img_name[:-4]}-p.png', path_on_img)
     
     return [path, path_on_img]
