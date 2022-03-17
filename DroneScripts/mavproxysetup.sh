@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VEHICLE=$1
+
 prompt_err() {
   echo -e "COMMAND FAILED"
 }
@@ -11,8 +13,6 @@ if !( $? -eq 0 ); then
   exit -1
 fi
 }
-
-VEHICLE=$1
 
 echo
 echo "Type 'mode MANUAL' to switch to remote control"

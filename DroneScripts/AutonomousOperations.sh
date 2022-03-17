@@ -1,12 +1,13 @@
 #!/bin/bash
 
 echo Welcome to Drover
+echo
 
 # run to allow permission to run:
 # ls -l filename.sh
 # chmod 755 filename.sh
 
-VEHICLE='rover'
+VEHICLE='drone'
 FLIGHTSCRIPT='WayPointNavScript.py'
 
 prompt_err() {
@@ -21,6 +22,8 @@ if !( $? -eq 0 ); then
 fi
 }
 
+echo 'Setting up mavproxy...'
+echo 'Setting up launch...'
 # On Raspberry pi (linux)
 lxterminal --command "cd /home/pi/Desktop && ./mavproxysetup.sh "$VEHICLE &
 lxterminal --command "cd /home/pi/Desktop && ./takeoff.sh "$FLIGHTSCRIPT &
@@ -31,15 +34,14 @@ lxterminal --command "cd /home/pi/Desktop && ./takeoff.sh "$FLIGHTSCRIPT &
 #   do script "cd /Users/charlesjiang/Downloads && ./takeoff.sh SimpleTakeOffLand.py"
 # end tell'
 
-if [ $VEHICLE -eq 'drone' ]; then
-  # # Access photo and run astar
-  # # Save pixel coordinate data and image with path drawn on it
-  # status 'python astar.py'
+wait
 
-  # # Run pixel to coordinates
-  # # Save coordinate data to file
-  # status 'python PixelstoCoordinates.py'
-
+if [ $VEHICLE == 'rover' ]; then
+  echo '... NAVIGATION COMPLETE... DESTINATION REACHED'
+elif [ $VEHICLE == 'drone' ]; then
+  echo '... NAVIGATION COMPLETE... IMAGES AND FLIGHT DATA SAVED'
+  ./imageprocessing.sh
+fi
 # Send coordinate data to computer on ground
 
 

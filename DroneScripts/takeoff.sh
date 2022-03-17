@@ -1,5 +1,8 @@
 #!/bin/bash
 
+FLIGHTSCRIPT=$1
+cd /home/pi/Desktop
+
 prompt_err() {
   echo -e "COMMAND FAILED"
 }
@@ -12,9 +15,6 @@ if !( $? -eq 0 ); then
 fi
 }
 
-FLIGHTSCRIPT=$1
-cd /home/pi/Desktop
-
 echo
 echo 'Connect Mission Planner before preceding'
 echo
@@ -23,15 +23,17 @@ echo
 echo "Type 'takeoff' when ready to arm and takeoff or 'q' to cancel..."
 echo "Then, arm vehicle in mission planner or type 'arm throttle force' in the mavproxysetup window..."
 read -p '>>> ' TAKEOFFVAR
+
+while [[ $TAKEOFFVAR != 'takeoff' && $TAKEOFFVAR != 'q' ]]
+  do
+    echo 'Error: invalid input'
+    read -p '>>> ' TAKEOFFVAR
+  done
+
 if [ $TAKEOFFVAR == 'takeoff' ]; then
   echo '||>>>RUNNING TAKEOFF SCRIPT<<<||'
-  # while ! (python scriptname.py --connect udp:127.0.0.1:14551 -eq 0)
-  # while ! (python AdvancedDay1.py -eq 0) # PROB WON'T NEED
-  # do
-  #     echo Attempting to connect
-  #     sleep 1
-  # done
   status 'python '$FLIGHTSCRIPT' --connect udp:127.0.0.1:14551'
+
 elif [ $TAKEOFFVAR == 'cancel' ]; then
   exit -1
 fi
