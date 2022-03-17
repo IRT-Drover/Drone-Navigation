@@ -12,6 +12,17 @@ from astar import Node
 from pygeodesy.ellipsoidalVincenty import LatLon
 from pygeodesy import Datums
 
+def distance(pixHome, pix1, resolution, magnification):
+    distance_img_y = (pixHome[1] - pix1[1]) / resolution
+    distance_map_y = distance_img_y / magnification
+    print("Vert meters to center: " + str(distance_map_y))
+    
+    distance_img_x = (pix1[0] - pixHome[0]) / resolution
+    distance_map_x = distance_img_x / magnification
+    print("Horiz meters to center: " + str(distance_map_x))
+    
+    return [distance_map_x, distance_map_y]
+
 def pixelstocoordinates(PATH, pictureData):
     if PATH is None or len(PATH)==0:
         return None
@@ -57,9 +68,14 @@ def pixelstocoordinates(PATH, pictureData):
     #     testpixel.y = i[1]
     #     PATH.append(testpixel)
     
-    # altitude = 6.5 # in meters
+    # FOR SATELLITE TESTING
+    resolution = 5024
+    magnification = (1/5024)*287/17 #imagesize/objectsize #in meters
+    sensor_H = 1440
+    sensor_V = 900
+    
     image_dist = (altitude * focal) / (altitude - focal)
-    magnification = image_dist/altitude
+    # magnification = image_dist/altitude
     print("image distance: " + str(image_dist))
     print("altitude: " + str(altitude))
     print("magnification: " + str(magnification))
@@ -67,10 +83,6 @@ def pixelstocoordinates(PATH, pictureData):
     pixel_y_0 = int((sensor_V)//2) # pixel y-coordinate
     pixel_x_0 = int((sensor_H)//2) # pixel x-coordinate
     pixelCenter = [pixel_x_0, pixel_y_0]
-    
-    # lat_0 = 40.61865173982036 #latitude
-    # long_0 = -74.56913024979528 #longitude
-    # drone = LatLon(40.61865173982036, -74.56913024979528, datum=Datums.NAD83) # default datum is WGS-84
 
     print("---")
 
@@ -105,17 +117,6 @@ def pixelstocoordinates(PATH, pictureData):
     for wp in rover_path:
         print(wp)
     return rover_path
-
-def distance(pixHome, pix1, resolution, magnification):
-    distance_img_y = (pixHome[1] - pix1[1]) / resolution
-    distance_map_y = distance_img_y / magnification
-    print("Vert meters to center: " + str(distance_map_y))
-    
-    distance_img_x = (pix1[0] - pixHome[0]) / resolution
-    distance_map_x = distance_img_x / magnification
-    print("Horiz meters to center: " + str(distance_map_x))
-    
-    return [distance_map_x, distance_map_y]
 
 # directory = 'CameraCalibration/pixeltocoordinate_imagetesting/'
 # PATH = []
