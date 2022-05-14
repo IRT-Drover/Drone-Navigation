@@ -85,7 +85,7 @@ class PathfindingAndMapping:
         
         return GPS_PATH
 
-    # Parameter: 3D list of start pixel and end pixel for each image # May get rid of later
+    # Parameter: 3D list of start pixel and end pixel for each image. x and y coord: 1 to image dim # May get rid of later
     # Collects all images in a list and sorts them from oldest to newest.
     # Runs astar and pixel to coordinates algorithm.
     # Creates text file 'astarData.txt'for astar output and 'coordsData.txt' for pixeltocoord output.
@@ -98,7 +98,7 @@ class PathfindingAndMapping:
         GPSPATHS = []
         for img_num in range(1, len(images) + 1):
             pixelPath = self.astar(images[img_num-1][len(self.flight):], img_num+2, startend_list[img_num-1][0], startend_list[img_num-1][1])
-            GPSPATHS.append(self.pixelToCoords(pixelPath, img_num+2))
+            GPSPATHS.append(self.pixelToCoords(pixelPath, img_num)) ### ADD IMAGE NUMBER IF WANT TO ONLY RUN FOR SINGLE IMAGE THAT ISN'T THE FIRST
             
         # Saves data as a 2D list to npz file
         np.savez(self.flight+'GPSDATA_TOSEND', GPSPATHS=GPSPATHS)
@@ -130,12 +130,15 @@ class PathfindingAndMapping:
 flightpathmap = PathfindingAndMapping('DronePictures/')
 print(flightpathmap.getflight())
 
-# Football field
+# x-coord: 1-1400, y-coord:1-900
+# Track
 # startendlist = [[[720,900],[720,1]]] #check if pixel selection from opencv selects index or pixel number
 # Park
 # startendlist = [[[1300,1],[10,686]]]
 # Trail
-startendlist = [[[1170,1],[1,900]]]
+# startendlist = [[[1170,1],[1,900]]]
+# Football Field
+startendlist = [[[396,834],[937,69]]]
 GPSPaths = flightpathmap.pathfindingandmapping(startendlist)
 # gpsdata = np.load('DronePictures/2021-04-19 18:08:11.670318/GPSDATA_TOSEND.npz')
 # for i in gpsdata['GPSPATHS']:
@@ -148,5 +151,6 @@ GPSPaths = npzfile['GPSPATHS']
 npzfile.close()
 kml=simplekml.Kml()
 for coord in GPSPaths[0]:
+    print('Lat:',coord[0],'| Lon:',coord[1])
     kml.newpoint(coords=[(coord[1],coord[0])])
-kml.save(flightpathmap.getflight()+'trail-p.kml')
+kml.save(flightpathmap.getflight()+'-p.kml')
