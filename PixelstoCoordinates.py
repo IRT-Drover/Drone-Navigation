@@ -56,9 +56,9 @@ def pixelstocoordinates(PATH, pictureData):
     
     print(sensor_H)
     print(sensor_V)
-    print("sensor dimensions in mm:")
-    print(sensor_H/resolution*1000) # in mm
-    print(sensor_V/resolution*1000) # in mm
+    print("Sensor dimensions in mm:")
+    print("Width:" , (sensor_H/resolution*1000)) # in mm
+    print("Height:" , (sensor_V/resolution*1000)) # in mm
     
     #TESTING PATH. ALL CORNERS AND MIDPOINTS, STARTING TOP LEFT
     # PATH = []
@@ -68,11 +68,14 @@ def pixelstocoordinates(PATH, pictureData):
     #     testpixel.y = i[1]
     #     PATH.append(testpixel)
     
-    # FOR SATELLITE TESTING
+    ### FOR SATELLITE TESTING
     resolution = 5024
-    magnification = (1/5024)*287/17 #imagesize/objectsize #in meters
+    imagepixels = 287 # scale width in number of pixels
+    objectsize = 32 # real world scale width in meters
+    magnification = (1/resolution)*imagepixels/objectsize #imagesize/objectsize #in meters
     sensor_H = 1440
     sensor_V = 900
+    ###
     
     image_dist = (altitude * focal) / (altitude - focal)
     # magnification = image_dist/altitude
@@ -112,7 +115,6 @@ def pixelstocoordinates(PATH, pictureData):
     
     print("Drone Coordinate: ")
     print(drone)
-    # print([lat_0,long_0])
     print("Path:")
     for wp in rover_path:
         print(wp)
