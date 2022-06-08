@@ -3,7 +3,6 @@ import numpy as np
 import simplekml
 import os
 import glob
-import datetime
 
 from astar import aStar
 from PixelstoCoordinates import pixelstocoordinates
@@ -41,7 +40,7 @@ class PathfindingAndMapping:
         flights = glob.glob(directory_flights+"*")
         self.flight = max(flights, key=os.path.getmtime) + '/'
 
-    # Parameters: name of image file, image number (starting from 1)
+    # Parameters: name of image file, image number (starting from 1). Start and end are lists representing a pixel
     # Assumes astar data file is 'astarData.txt'
     # Runs astar algorithm on the image. Default start is top left and default end is bottom right of image
     # Astar algorithm returns pixel path as a list and saves image with path drawn on it
@@ -59,7 +58,7 @@ class PathfindingAndMapping:
     # Saves picture data for an image as list --> [coordinate, altitude]
     # Runs pixels to coordinates algorithm, which takes pixel path and picture data as inputs
     # Appends GPS path to coordsData.txt
-    # Saves GPS path to numpy file, which will be sent to rover, within a 2D list.
+    # Saves/updates GPS path to npy file as a dictionary with key value pairs: Picture # : GPSPATH
     # Returns the GPS path as a list
     def pixelToCoords(self, pixel_PATH, img_num):
         fo = open(self.flight + 'pictureData.txt')
@@ -75,15 +74,20 @@ class PathfindingAndMapping:
         selectpicdata[1] = float(selectpicdata[1])
         
         # Calculates and returns GPS path
-        GPS_PATH = pixelstocoordinates(pixel_PATH, selectpicdata)
+        GPSPATH = pixelstocoordinates(pixel_PATH, selectpicdata)
         
         # Appends data to 'coordsData.txt'
-        self.writeFile("coordsData.txt", GPS_PATH, img_num)
+        self.writeFile("coordsData.txt", GPSPATH, img_num)
         
-        # Saves data to npz file
-        np.savez(self.flight+'GPSDATA_TOSEND', GPSPATHS=[GPS_PATH])
+        # Saves data to dictionary and store in npy file
+        try: # if file already exists, load paths and add new path (no duplicates) before saving file
+            GPSPATHS = np.load(self.flight+'GPSDATAPACKAGE.npy', allow_pickle='TRUE').item()
+            GPSPATHS["Picture "+str(img_num)] = GPSPATH
+            np.save(self.flight+'GPSDATAPACKAGE', GPSPATHS)
+        except OSError: # if file doesn't exist, create file and dictionary
+            np.save(self.flight+'GPSDATAPACKAGE', {"Picture "+str(img_num) : GPSPATH})
         
-        return GPS_PATH
+        return GPSPATH
 
     # Parameter: 3D list of start pixel and end pixel for each image. x and y coord: 1 to image dim # May get rid of later
     # Collects all images in a list and sorts them from oldest to newest.
@@ -91,17 +95,33 @@ class PathfindingAndMapping:
     # Creates text file 'astarData.txt'for astar output and 'coordsData.txt' for pixeltocoord output.
     # Appends pixel path results to astarData.txt and saves image with path drawn on it.
     # Appends coordinate path results to coordsData.txt
-    # Saves GPS path of every image to numpy file, which will be sent to rover, within a 2D list. Each element is a path for an image
-    def pathfindingandmapping(self, startend_list):
+    # Saves/updates GPS paths to npy file as a dictionary with key value pairs: Picture # : GPSPATH
+    def pathfindingandmapping_multi(self, startend_list):
         images = glob.glob(self.flight + "*[!-p].png")
         images.sort(key=os.path.getmtime)
-        GPSPATHS = []
+        GPSPATHS = {}
+        # GPSPATHS = []
         for img_num in range(1, len(images) + 1):
-            pixelPath = self.astar(images[img_num-1][len(self.flight):], img_num+2, startend_list[img_num-1][0], startend_list[img_num-1][1])
-            GPSPATHS.append(self.pixelToCoords(pixelPath, img_num)) ### ADD IMAGE NUMBER IF WANT TO ONLY RUN FOR SINGLE IMAGE THAT ISN'T THE FIRST
-            
-        # Saves data as a 2D list to npz file
-        np.savez(self.flight+'GPSDATA_TOSEND', GPSPATHS=GPSPATHS)
+            pixelPath = self.astar(images[img_num-1][len(self.flight):], img_num, startend_list[img_num-1][0], startend_list[img_num-1][1]) ### ADD IMAGE NUMBER - 1 to second parameter IF WANT TO SKIP TO IMAGE
+            GPSPATHS["Picture "+str(img_num)] = self.pixelToCoords(pixelPath, img_num) ### ADD (IMAGE NUMBER - 1) to img_num IF WANT TO SKIP TO IMAGE
+            # GPSPATHS.append(self.pixelToCoords(pixelPath, img_num))
+        
+        # Returns gps data saved in dictionary
+        return GPSPATHS
+    
+    # Parameters: number of picture to analyze. starting pixel and end pixel stored in a 2d list
+    # Same as pathfindingandmapping_multi except for only one image
+    def pathfindingandmapping(self, img_num, start_end):
+        images = glob.glob(self.flight + "*[!-p].png")
+        images.sort(key=os.path.getmtime)
+        print("Collecting images...")
+        print(images)
+        print()
+        GPSPATHS = {}
+        
+        pixelPath = self.astar(images[img_num-1][len(self.flight):], img_num, start_end[0], start_end[1])
+        GPSPATHS["Picture "+str(img_num)] = self.pixelToCoords(pixelPath, img_num)
+        
         return GPSPATHS
 
     # Creates text file called fn in flight folder if not already created
@@ -126,6 +146,7 @@ class PathfindingAndMapping:
         return string_list
             
             
+            
 # Testing pathfindingandmapping method
 flightpathmap = PathfindingAndMapping('DronePictures/')
 print(flightpathmap.getflight())
@@ -138,19 +159,21 @@ print(flightpathmap.getflight())
 # Trail
 # startendlist = [[[1170,1],[1,900]]]
 # Football Field
-startendlist = [[[396,834],[937,69]]]
-GPSPaths = flightpathmap.pathfindingandmapping(startendlist)
-# gpsdata = np.load('DronePictures/2021-04-19 18:08:11.670318/GPSDATA_TOSEND.npz')
-# for i in gpsdata['GPSPATHS']:
-#     for j in i:
-#         print(j)
+# startendlist = [[[396,834],[937,69]]]
+# paths = flightpathmap.pathfindingandmapping_multi(startendlist)
+# Longhill: tennis court, turf field, grass field
+# startendlist = [[618,745],[940,127]]
+# startendlist = [[245,433],[775,561]]
+startendlist = [[300,583],[1067,280]]
+paths = flightpathmap.pathfindingandmapping(3, startendlist)
 
 # Creating kmz file to view on maps
-npzfile = np.load(flightpathmap.getflight()+'GPSDATA_TOSEND.npz')
-GPSPaths = npzfile['GPSPATHS']
-npzfile.close()
+GPSPaths = np.load(flightpathmap.getflight()+'GPSDATAPACKAGE.npy', allow_pickle='TRUE').item()
+print("Single run", str(paths.keys()))
+print("All paths " , str(GPSPaths.keys()))
+
 kml=simplekml.Kml()
-for coord in GPSPaths[0]:
-    print('Lat:',coord[0],'| Lon:',coord[1])
+for coord in GPSPaths["Picture 3"]:
+    # print('Lat:',coord[0],'| Lon:',coord[1])
     kml.newpoint(coords=[(coord[1],coord[0])])
 kml.save(flightpathmap.getflight()+'-p.kml')
