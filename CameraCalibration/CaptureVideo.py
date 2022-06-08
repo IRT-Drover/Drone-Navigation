@@ -10,8 +10,8 @@ camera = cv.VideoCapture(1)
 print("Checking Camera Dimensions...")
 (grabbed, frame) = camera.read()
 fshape = frame.shape
-fheight = fshape[0]
-fwidth = fshape[1]
+fheight = fshape[0] # 480
+fwidth = fshape[1] # 640
 if grabbed == False:
     raise Exception('Unsuccessful')
 else:
