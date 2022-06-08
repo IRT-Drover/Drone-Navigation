@@ -71,7 +71,7 @@ def pixelstocoordinates(PATH, pictureData):
     ### FOR SATELLITE TESTING
     resolution = 5024
     imagepixels = 287 # scale width in number of pixels
-    objectsize = 32 # real world scale width in meters
+    objectsize = 30 # real world scale width in meters
     magnification = (1/resolution)*imagepixels/objectsize #imagesize/objectsize #in meters
     sensor_H = 1440
     sensor_V = 900
