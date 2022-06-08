@@ -173,8 +173,8 @@ def aStar(img_name, startpixel,  endpixel, directory_path=''):
     
     if path != "failure":
         for i in range(len(path)):
-            print("COORDS: " + str(path[i]))
-            print("x y: " , path[i].x, path[i].y)
+            # print("COORDS: " + str(path[i]))
+            # print("x y: " , path[i].x, path[i].y)
             path[i] = [path[i].y, path[i].x]
             
             path_on_img[path[i][1], path[i][0]] = [0,0,255]
