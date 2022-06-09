@@ -153,19 +153,19 @@ print(flightpathmap.getflight())
 
 # x-coord: 1-1400, y-coord:1-900
 # Track
-# startendlist = [[[720,900],[720,1]]] #check if pixel selection from opencv selects index or pixel number
+# startendlist = [[720,900],[720,1]] #check if pixel selection from opencv selects index or pixel number
 # Park
-# startendlist = [[[1300,1],[10,686]]]
+# startendlist = [[1300,1],[10,686]]
 # Trail
-# startendlist = [[[1170,1],[1,900]]]
+# startendlist = [[1170,1],[1,900]]
 # Football Field
-# startendlist = [[[396,834],[937,69]]]
+startendlist = [[396,834],[937,69]]
 # paths = flightpathmap.pathfindingandmapping_multi(startendlist)
 # Longhill: tennis court, turf field, grass field
 # startendlist = [[618,745],[940,127]]
 # startendlist = [[245,433],[775,561]]
-startendlist = [[300,583],[1067,280]]
-paths = flightpathmap.pathfindingandmapping(3, startendlist)
+# startendlist = [[300,583],[1067,280]]
+paths = flightpathmap.pathfindingandmapping(1, startendlist)
 
 # Creating kmz file to view on maps
 GPSPaths = np.load(flightpathmap.getflight()+'GPSDATAPACKAGE.npy', allow_pickle='TRUE').item()
@@ -173,7 +173,7 @@ print("Single run", str(paths.keys()))
 print("All paths " , str(GPSPaths.keys()))
 
 kml=simplekml.Kml()
-for coord in GPSPaths["Picture 3"]:
+for coord in GPSPaths["Picture 1"]:
     # print('Lat:',coord[0],'| Lon:',coord[1])
     kml.newpoint(coords=[(coord[1],coord[0])])
 kml.save(flightpathmap.getflight()+'-p.kml')
