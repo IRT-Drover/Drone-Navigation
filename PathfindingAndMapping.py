@@ -64,14 +64,16 @@ class PathfindingAndMapping:
         fo = open(self.flight + 'pictureData.txt')
         pictureData = fo.readlines()
         fo.close()
-        imgdata_index = (img_num - 1) * 3 + 1
-        selectpicdata = pictureData[imgdata_index:imgdata_index+2]
+        imgdata_index = (img_num - 1) * 4 + 1
+        selectpicdata = pictureData[imgdata_index:imgdata_index+3]
         
         # Stores GPS coordinates of drone as a list as the first element in selectpicdata.
         droneLoc = [float(selectpicdata[0][:selectpicdata[0].find(' ')]), float(selectpicdata[0][selectpicdata[0].find(' ') + 1:])]
         selectpicdata[0] = droneLoc
         # Stores height as the second element in selectpicdata
         selectpicdata[1] = float(selectpicdata[1])
+        # Stores bearing of top of image
+        selectpicdata[2] = float(selectpicdata[2])
         
         # Calculates and returns GPS path
         GPSPATH = pixelstocoordinates(pixel_PATH, selectpicdata)
@@ -81,7 +83,7 @@ class PathfindingAndMapping:
         
         # Saves data to dictionary and store in npy file
         try: # if file already exists, load paths and add new path (no duplicates) before saving file
-            GPSPATHS = np.load(self.flight+'GPSDATAPACKAGE.npy', allow_pickle='TRUE').item()
+            GPSPATHS = np.load(self.flight+'GPSDATAPACKAGE.npy', allow_pickle=True, fix_imports=True).item() #fix_imports='TRUE' unpickles data in a Python2 compatable way
             GPSPATHS["Picture "+str(img_num)] = GPSPATH
             np.save(self.flight+'GPSDATAPACKAGE', GPSPATHS)
         except OSError: # if file doesn't exist, create file and dictionary
@@ -165,6 +167,8 @@ startendlist = [[396,834],[937,69]]
 # startendlist = [[618,745],[940,127]]
 # startendlist = [[245,433],[775,561]]
 # startendlist = [[300,583],[1067,280]]
+# Pasini's House
+startendlist = [[475,562],[926,440]]
 paths = flightpathmap.pathfindingandmapping(1, startendlist)
 
 # Creating kmz file to view on maps
