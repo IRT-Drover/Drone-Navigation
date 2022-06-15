@@ -83,11 +83,11 @@ class PathfindingAndMapping:
         
         # Saves data to dictionary and store in npy file
         try: # if file already exists, load paths and add new path (no duplicates) before saving file
-            GPSPATHS = np.load(self.flight+'GPSDATAPACKAGE.npy', allow_pickle=True, fix_imports=True).item() #fix_imports='TRUE' unpickles data in a Python2 compatable way
+            GPSPATHS = np.load(self.flight+'GPSDATAPACKAGE.npy', allow_pickle=True, fix_imports=True).item()
             GPSPATHS["Picture "+str(img_num)] = GPSPATH
-            np.save(self.flight+'GPSDATAPACKAGE', GPSPATHS)
+            np.save(self.flight+'GPSDATAPACKAGE', GPSPATHS, allow_pickle=True, fix_imports=True) #fix_imports='TRUE' saves data in a Python2 compatible way
         except OSError: # if file doesn't exist, create file and dictionary
-            np.save(self.flight+'GPSDATAPACKAGE', {"Picture "+str(img_num) : GPSPATH})
+            np.save(self.flight+'GPSDATAPACKAGE', {"Picture "+str(img_num) : GPSPATH}, allow_pickle=True, fix_imports=True) #fix_imports='TRUE' saves data in a Python2 compatible way
         
         return GPSPATH
 
@@ -172,7 +172,7 @@ startendlist = [[475,562],[926,440]]
 paths = flightpathmap.pathfindingandmapping(1, startendlist)
 
 # Creating kmz file to view on maps
-GPSPaths = np.load(flightpathmap.getflight()+'GPSDATAPACKAGE.npy', allow_pickle='TRUE').item()
+GPSPaths = np.load(flightpathmap.getflight()+'GPSDATAPACKAGE.npy', allow_pickle=True, fix_imports=True).item()
 print("Single run", str(paths.keys()))
 print("All paths " , str(GPSPaths.keys()))
 
