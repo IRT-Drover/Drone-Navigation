@@ -25,7 +25,7 @@ from pygeodesy import Datums
 
 # np.save('data_by_image_package', GPSPATHS)
 
-received = np.load('data_by_image_package.npy', allow_pickle='TRUE').item()
+received = np.load('numpytesting.npy', allow_pickle='TRUE').item()
 print(received)
 print(received[1])
 
