@@ -23,15 +23,14 @@ from pygeodesy import Datums
 # for img_num in range(1, 4):
 #     GPSPATHS[img_num] = [1+img_num,2+img_num,3+img_num]
 
-file = open('pickletest.pickle', 'rb')
-received = pickle.load(file)
-print(received[2])
-received["Picture 4"] = [1,2,3,4,5,6,7,89,9]
-print(received)
-file.close()
+with open('test.pickle','rb') as file:
+    received = pickle.load(file)
+    print(received[2])
+    received["Picture 4"] = [1,2,3,4,5,6,7,89,9]
+    print(received)
 with open('pickletest.pickle','wb') as file:
     pickle.dump(received, file, 0)
-file.close
+
 
 # received = np.load('numpytest.npy').item()
 # print(received)
