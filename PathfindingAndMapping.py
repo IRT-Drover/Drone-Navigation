@@ -1,5 +1,5 @@
 import cv2 as cv
-import numpy as np
+import pickle
 import simplekml
 import os
 import glob
@@ -82,12 +82,15 @@ class PathfindingAndMapping:
         self.writeFile("coordsData.txt", GPSPATH, img_num)
         
         # Saves data to dictionary and store in npy file
-        try: # if file already exists, load paths and add new path (no duplicates) before saving file
-            GPSPATHS = np.load(self.flight+'GPSDATAPACKAGE.npy', allow_pickle=True, fix_imports=True).item()
-            GPSPATHS["Picture "+str(img_num)] = GPSPATH
-            np.save(self.flight+'GPSDATAPACKAGE', GPSPATHS, allow_pickle=True, fix_imports=True) #fix_imports='TRUE' saves data in a Python2 compatible way
-        except OSError: # if file doesn't exist, create file and dictionary
-            np.save(self.flight+'GPSDATAPACKAGE', {"Picture "+str(img_num) : GPSPATH}, allow_pickle=True, fix_imports=True) #fix_imports='TRUE' saves data in a Python2 compatible way
+        try: # if file already exists, load paths and add new path (no duplicates) before resaving file
+            with open(self.flight+'GPSDATAPACKAGE.pickle','rb') as file:
+                GPSPATHS = pickle.load(file)
+                GPSPATHS["Picture "+str(img_num)] = GPSPATH
+            with open(self.flight+'GPSDATAPACKAGE.pickle','wb') as file:
+                GPSPATHS = pickle.dump(GPSPATHS, file, 0)
+        except FileNotFoundError: # if file doesn't exist, create file and dictionary
+            with open(self.flight+'GPSDATAPACKAGE.pickle','wb') as file:
+                GPSPATHS = pickle.dump({"Picture "+str(img_num) : GPSPATH}, file, 0)
         
         return GPSPATH
 
@@ -101,6 +104,9 @@ class PathfindingAndMapping:
     def pathfindingandmapping_multi(self, startend_list):
         images = glob.glob(self.flight + "*[!-p].png")
         images.sort(key=os.path.getmtime)
+        print("Collecting images...")
+        print(images)
+        print()
         GPSPATHS = {}
         # GPSPATHS = []
         for img_num in range(1, len(images) + 1):
@@ -172,7 +178,9 @@ startendlist = [[475,562],[926,440]]
 paths = flightpathmap.pathfindingandmapping(1, startendlist)
 
 # Creating kmz file to view on maps
-GPSPaths = np.load(flightpathmap.getflight()+'GPSDATAPACKAGE.npy', allow_pickle=True, fix_imports=True).item()
+GPSPaths = {}
+with open(flightpathmap.getflight()+'GPSDATAPACKAGE.pickle', 'rb') as file:
+    GPSPaths = pickle.load(file)
 print("Single run", str(paths.keys()))
 print("All paths " , str(GPSPaths.keys()))
 
