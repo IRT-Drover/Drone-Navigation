@@ -39,6 +39,7 @@ def pixelstocoordinates(PATH, pictureData):
     #Picture Data
     drone = LatLon(pictureData[0][0], pictureData[0][1], datum=Datums.NAD83) # default datum is WGS-84
     altitude = pictureData[1]
+    img_direction = pictureData[2]
     
     #Camera Info
     npz_calib_file = np.load('CameraCalibration/calibration_data.npz')
@@ -71,7 +72,7 @@ def pixelstocoordinates(PATH, pictureData):
     ### FOR SATELLITE TESTING
     resolution = 5024
     imagepixels = 287 # scale width in number of pixels
-    objectsize = 32 # real world scale width in meters
+    objectsize = 14 # real world scale width in meters
     magnification = (1/resolution)*imagepixels/objectsize #imagesize/objectsize #in meters
     sensor_H = 1440
     sensor_V = 900
@@ -97,13 +98,14 @@ def pixelstocoordinates(PATH, pictureData):
         
         distance_map = math.sqrt(distance_map_x**2 + distance_map_y**2)
         
-        bearing = 0 # compass 360 degrees; north = 0 degrees
+        bearing = 0 # compass 360 degrees; north = 0 degrees # accounts for angle of top of image from North
         if distance_map_x != 0:
-            bearing = 90 - (math.atan(distance_map_y/distance_map_x)*180/math.pi)
+            bearing = 90 - (math.atan(distance_map_y/distance_map_x)*180/math.pi) + img_direction
             if distance_map_x < 0:
                 bearing += 180
         elif distance_map_y < 0:
-            bearing = 180
+            bearing = 180 + img_direction
+            
         
         print("\nBearing: " + str(bearing))
         print("Distance: " + str(distance_map) + "\n")
