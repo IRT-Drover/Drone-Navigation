@@ -32,8 +32,8 @@ print(received[1])
 received["Picture 4"] = [1,2,3,4,5,6,7,89,9]
 print(received)
 
-np.save('data_by_image_package.npy', received)
-received2 = np.load('data_by_image_package.npy', allow_pickle='TRUE').item()
+np.save('numpytesting.npy', received)
+received2 = np.load('numpytesting.npy', allow_pickle='TRUE').item()
 print(received2)
 
 # GPS_PATH = [1+img_num,2+img_num,3+img_num]
