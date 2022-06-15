@@ -1,5 +1,6 @@
 import glob
 import numpy as np
+import pickle
 import math
 from pygeodesy.ellipsoidalVincenty import LatLon
 from pygeodesy import Datums
@@ -18,23 +19,30 @@ from pygeodesy import Datums
 #     for j in i:
 #         print(j)
 
-
 # GPSPATHS = {}
 # for img_num in range(1, 4):
 #     GPSPATHS[img_num] = [1+img_num,2+img_num,3+img_num]
 
-# np.save('data_by_image_package', GPSPATHS)
-
-received = np.load('numpytest.npy', allow_pickle='TRUE').item()
-print(received)
-print(received[1])
-
+file = open('pickletest.pickle', 'rb')
+received = pickle.load(file)
+print(received[2])
 received["Picture 4"] = [1,2,3,4,5,6,7,89,9]
 print(received)
+file.close()
+with open('pickletest.pickle','wb') as file:
+    pickle.dump(received, file, 0)
+file.close
 
-np.save('numpytest.npy', received)
-received2 = np.load('numpytest.npy', allow_pickle='TRUE').item()
-print(received2)
+# received = np.load('numpytest.npy').item()
+# print(received)
+# print(received[1])
+
+# received["Picture 4"] = [1,2,3,4,5,6,7,89,9]
+# print(received)
+
+# np.save('numpytest.npy', received)
+# received2 = np.load('numpytest.npy').item()
+# print(received2)
 
 # GPS_PATH = [1+img_num,2+img_num,3+img_num]
 # GPSPATHS = np.array([(img_num, GPS_PATH)],
@@ -48,8 +56,8 @@ print(received2)
 
 # print(GPSPATHS[1])
 
-GPSPaths = np.load('DronePictures/2022-06-05 Satellite Image Testing/GPSDATAPACKAGE.npy', allow_pickle='TRUE').item()
-print(GPSPaths.keys())
+# GPSPaths = np.load('DronePictures/2022-06-05 Satellite Image Testing/GPSDATAPACKAGE.npy', allow_pickle='TRUE').item()
+# print(GPSPaths.keys())
 # GPSPaths.pop(('Picture', 1))
 # np.save('DronePictures/2022-06-05 Satellite Image Testing/GPSDATAPACKAGE.npy', GPSPaths)
 
