@@ -23,7 +23,7 @@ from pygeodesy import Datums
 # for img_num in range(1, 4):
 #     GPSPATHS[img_num] = [1+img_num,2+img_num,3+img_num]
 
-with open('test.pickle','rb') as file:
+with open('pickletest.pickle','rb') as file:
     received = pickle.load(file)
     print(received[2])
     received["Picture 4"] = [1,2,3,4,5,6,7,89,9]
@@ -31,6 +31,9 @@ with open('test.pickle','rb') as file:
 with open('pickletest.pickle','wb') as file:
     pickle.dump(received, file, 0)
 
+with open('DronePictures/2022-06-14 Satellite Image Testing/GPSDATAPACKAGE.pickle', 'rb') as file:
+    GPSPaths = pickle.load(file)
+    print(GPSPaths.keys())
 
 # received = np.load('numpytest.npy').item()
 # print(received)
