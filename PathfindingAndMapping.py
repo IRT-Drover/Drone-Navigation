@@ -87,10 +87,10 @@ class PathfindingAndMapping:
                 GPSPATHS = pickle.load(file)
                 GPSPATHS["Picture "+str(img_num)] = GPSPATH
             with open(self.flight+'GPSDATAPACKAGE.pickle','wb') as file:
-                GPSPATHS = pickle.dump(GPSPATHS, file, 0)
+                pickle.dump(GPSPATHS, file, 0)
         except FileNotFoundError: # if file doesn't exist, create file and dictionary
             with open(self.flight+'GPSDATAPACKAGE.pickle','wb') as file:
-                GPSPATHS = pickle.dump({"Picture "+str(img_num) : GPSPATH}, file, 0)
+                pickle.dump({"Picture "+str(img_num) : GPSPATH}, file, 0)
         
         return GPSPATH
 
